@@ -1,0 +1,64 @@
+{
+  "name": "md-to-slack",
+  "version": "0.0.0",
+  "description": "Converts Markdown to Slack-compatible text",
+  "keywords": [
+    "markdown",
+    "slack",
+    "mrkdwn"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nicoespeon/md-to-slack.git"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Nicolas Carlo",
+    "email": "nicolascarlo.espeon@gmail.com"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "files": [
+    "LICENSE.md",
+    "README.md",
+    "dist/",
+    "package.json"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --dts --format esm,cjs,iife",
+    "format": "prettier .",
+    "lint": "eslint . --max-warnings 0",
+    "prepare": "husky",
+    "test": "vitest",
+    "tsc": "tsc"
+  },
+  "lint-staged": {
+    "*": "prettier --ignore-unknown --write"
+  },
+  "dependencies": {
+    "marked": "^15.0.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.18.0",
+    "@types/node": "^22.10.6",
+    "eslint": "^9.18.0",
+    "eslint-plugin-n": "^17.15.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.3.0",
+    "prettier": "^3.4.2",
+    "prettier-plugin-curly": "^0.3.1",
+    "prettier-plugin-packagejson": "^2.5.6",
+    "prettier-plugin-sh": "^0.14.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.20.0",
+    "vitest": "^2.1.8"
+  },
+  "packageManager": "pnpm@9.15.4+sha512.b2dc20e2fc72b3e18848459b37359a32064663e5627a51e4c74b2c29dd8e8e0491483c3abb40789cfd578bf362fb6ba8261b05f0387d76792ed6e23ea3b1b6a0",
+  "engines": {
+    "node": ">=18.3.0"
+  },
+  "publishConfig": {
+    "provenance": true
+  }
+}
