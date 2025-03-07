@@ -1,0 +1,24 @@
+# Uses release-please to manage automatic releases from conventional commits.
+# It maintains the CHANGELOG, versioning and creation of GitHub releases.
+# It does not publish to npm.
+#
+# Docs: https://github.com/marketplace/actions/release-please-action
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+name: release-please
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ secrets.MY_RELEASE_PLEASE_TOKEN }}
+          release-type: node

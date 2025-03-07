@@ -166,3 +166,11 @@ pnpm test
 ```
 
 It will run in watch mode by default and re-run tests when it detects changes to the file system.
+
+### Deployment
+
+The project uses [release-please](https://github.com/googleapis/release-please) to automatically create new releases and update the CHANGELOG.
+
+To make this work, we need to follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification.
+
+It's fine if you don't follow the convention yourself for the commits. If you open a pull request, only its title matters. That's what will be used to create the merge commit for release-please to pick up.
