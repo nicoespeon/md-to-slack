@@ -8,6 +8,8 @@
 </div>
 <br>
 
+[![NPM package](https://img.shields.io/npm/v/md-to-slack.svg?style=for-the-badge)](https://www.npmjs.com/package/md-to-slack)
+[![License](https://img.shields.io/npm/l/md-to-slack.svg?style=for-the-badge)](https://github.com/nicoespeon/md-to-slack/blob/main/LICENSE.md)
 [![All Contributors](https://img.shields.io/github/all-contributors/nicoespeon/md-to-slack?color=ee8449&style=for-the-badge)](#contributors)
 
 ## Features
