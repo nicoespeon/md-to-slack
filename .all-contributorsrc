@@ -1,0 +1,22 @@
+{
+  "projectName": "md-to-slack",
+  "projectOwner": "nicoespeon",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": ["README.md"],
+  "imageSize": 100,
+  "commit": false,
+  "commitConvention": "angular",
+  "badgeTemplate": "[![All Contributors](https://img.shields.io/github/all-contributors/<%= projectOwner %>/<%= projectName %>?color=ee8449&style=for-the-badge)](#contributors)",
+  "linkToUsage": true,
+  "skipCi": true,
+  "contributors": [
+    {
+      "login": "nicoespeon",
+      "name": "Nicolas Carlo",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/1094774?v=4",
+      "profile": "https://nicoespeon.com/",
+      "contributions": ["ideas", "code", "doc", "review", "question"]
+    }
+  ]
+}
