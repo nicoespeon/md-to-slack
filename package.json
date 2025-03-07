@@ -60,6 +60,7 @@
     "node": ">=18.3.0"
   },
   "publishConfig": {
+    "access": "public",
     "provenance": true
   }
 }
