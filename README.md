@@ -57,13 +57,13 @@ A few remarks though:
 ### 🔭 Next features
 
 1. Support Markdown extended syntax (e.g. tables)
-2. Generate Slack [BlockKit-compatible](https://api.slack.com/block-kit) objects, as an opt-in parameter
+2. Generate Slack [Block Kit-compatible](https://api.slack.com/block-kit) objects, as an opt-in parameter
 
 We want to support the [extended syntax](https://www.markdownguide.org/extended-syntax/), in particular things like tables and GitHub Flavored Markdown niceties.
 
 `mrkdwn` syntax has limited capabilities, so we intend to do a "best possble conversion" like we do for checkboxes.
 
-But the real deal will be to add the option for generating a Slack BlockKit-compatible output to render rich elements, such as images, checkboxes, tables, and other HTML elements in Slack.
+But the real deal will be to add the option for generating a Slack Block Kit-compatible output to render rich elements, such as images, checkboxes, tables, and other HTML elements in Slack.
 
 ### 🦺 Security consideration
 
@@ -75,7 +75,7 @@ If your Markdown input was generated from an external source, consider sanitizin
 
 As of February 2025, the most popular solution to do a similar job is [mack](https://github.com/tryfabric/mack/tree/master). But it has pitfalls:
 
-1. It only converts the output to Slack BlockKit block objects, it doesn't handle simple mrkdwn
+1. It only converts the output to Slack Block Kit objects, it doesn't handle simple mrkdwn
 2. Types are out-of-date with the latest Slack API, so you can't use it in TypeScript with SDK like [bolt](https://github.com/slackapi/bolt-js)
 3. CI is not passing and the code has not been changed since 2022
 
