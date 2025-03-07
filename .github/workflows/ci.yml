@@ -1,3 +1,13 @@
+# Run CI checks on all pushes and pull requests
+
+name: CI
+
+on:
+  pull_request: ~
+  push:
+    branches:
+      - main
+
 jobs:
   build:
     name: Build
@@ -35,11 +45,3 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/prepare
       - run: pnpm test
-
-name: CI
-
-on:
-  pull_request: ~
-  push:
-    branches:
-      - main
