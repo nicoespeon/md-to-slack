@@ -2,7 +2,7 @@
 name: ✨ Feature request
 about: When a behavior doesn't exist yet or you want to suggest a new idea
 title: ""
-labels: ":sparkles: Feature"
+labels: "enhancement"
 assignees: ""
 ---
 

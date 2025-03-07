@@ -8,6 +8,8 @@
 </div>
 <br>
 
+[![All Contributors](https://img.shields.io/github/all-contributors/nicoespeon/md-to-slack?color=ee8449&style=for-the-badge)](#contributors)
+
 ## Features
 
 - 💫 Converts input into Slack-compatible [mrkdwn](https://api.slack.com/reference/surfaces/formatting) syntax
@@ -180,3 +182,14 @@ The most important prefixes you should have in mind are:
 - `feat!:`, or `fix!:`, `refactor!:`, etc., which represent a breaking change (indicated by the !) and will result in a SemVer major.
 
 It's fine if you don't follow the convention yourself for the commits. If you open a pull request, only its title matters. That's what will be used to create the merge commit for release-please to pick up.
+
+## Contributors
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
