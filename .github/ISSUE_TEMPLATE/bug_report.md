@@ -2,7 +2,7 @@
 name: 🐛 Bug report
 about: When an existing behaviour doesn't produce the expected result
 title: ""
-labels: ":bug: Bug"
+labels: "bug"
 assignees: ""
 ---
 

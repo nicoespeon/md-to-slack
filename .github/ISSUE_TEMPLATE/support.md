@@ -2,7 +2,7 @@
 name: ❓ Support
 about: You have a question or need some help
 title: ""
-labels: ":question: Question"
+labels: "question"
 assignees: ""
 ---
 
