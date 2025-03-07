@@ -1,0 +1,23 @@
+# Publishes to npm on new GitHub releases
+#
+# Docs: https://github.com/marketplace/actions/npm-publish
+
+name: Publish to NPM
+
+on:
+  # We only publish on new releases, but npm-publish would only publish
+  # if the version number changed in the package.json.
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/prepare
+      - run: pnpm tsc
+      - run: pnpm test
+      - uses: JS-DevTools/npm-publish@v3
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
