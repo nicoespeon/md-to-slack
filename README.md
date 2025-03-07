@@ -1,8 +1,14 @@
 # Markdown to Slack
 
-Converts Markdown to Slack-compatible text.
+> Converts Markdown to Slack-compatible text.
 
----
+<br>
+<div align="center">
+  <img src="https://github.com/nicoespeon/md-to-slack/blob/main/assets/md2slack-logo.png?raw=true" width="300px" />
+</div>
+<br>
+
+## Features
 
 - 💫 Converts input into Slack-compatible [mrkdwn](https://api.slack.com/reference/surfaces/formatting) syntax
 - 🧱 Supports [Markdown](https://daringfireball.net/projects/markdown/) and [GitHub Flavored Markdown](https://github.github.com/gfm/) syntaxes
