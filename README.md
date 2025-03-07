@@ -173,4 +173,10 @@ The project uses [release-please](https://github.com/googleapis/release-please) 
 
 To make this work, we need to follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification.
 
+The most important prefixes you should have in mind are:
+
+- `fix:` which represents bug fixes, and correlates to a SemVer patch.
+- `feat:` which represents a new feature, and correlates to a SemVer minor.
+- `feat!:`, or `fix!:`, `refactor!:`, etc., which represent a breaking change (indicated by the !) and will result in a SemVer major.
+
 It's fine if you don't follow the convention yourself for the commits. If you open a pull request, only its title matters. That's what will be used to create the merge commit for release-please to pick up.
