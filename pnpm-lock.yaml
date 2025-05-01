@@ -26,7 +26,7 @@ importers:
         version: 9.22.0
       eslint-plugin-n:
         specifier: ^17.15.1
-        version: 17.15.1(eslint@9.22.0)
+        version: 17.17.0(eslint@9.22.0)
       husky:
         specifier: ^9.1.7
         version: 9.1.7
@@ -396,12 +396,6 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
-
-  '@eslint-community/eslint-utils@4.4.1':
-    resolution: {integrity: sha512-s3O3waFUrMV8P/XaF/+ZTp1X9XBZW1a4B97ZnjQF2KYWaFD2A8KyFBsrsfSjEmjn3RGWAIuvlneuZm3CUK3jbA==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
-    peerDependencies:
-      eslint: ^6.0.0 || ^7.0.0 || >=8.0.0
 
   '@eslint-community/eslint-utils@4.5.0':
     resolution: {integrity: sha512-RoV8Xs9eNwiDvhv7M+xcL4PWyRyIXRY/FLp3buU4h1EYfdF7unWUy3dOjPqb3C7rMUewIcqwW850PgS8h1o1yg==}
@@ -1037,8 +1031,8 @@ packages:
     peerDependencies:
       eslint: '>=8'
 
-  eslint-plugin-n@17.15.1:
-    resolution: {integrity: sha512-KFw7x02hZZkBdbZEFQduRGH4VkIH4MW97ClsbAM4Y4E6KguBJWGfWG1P4HEIpZk2bkoWf0bojpnjNAhYQP8beA==}
+  eslint-plugin-n@17.17.0:
+    resolution: {integrity: sha512-2VvPK7Mo73z1rDFb6pTvkH6kFibAmnTubFq5l83vePxu0WiY1s0LOtj2WHb6Sa40R3w4mnh8GFYbHBQyMlotKw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
       eslint: '>=8.23.0'
@@ -1213,8 +1207,8 @@ packages:
     resolution: {integrity: sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==}
     engines: {node: '>=18'}
 
-  globals@15.14.0:
-    resolution: {integrity: sha512-OkToC372DtlQeje9/zHIo5CT8lRP/FUgEOKBEhU4e0abL7J7CD24fD9ohiLN5hagG/kWCYj4K5oaxxtj2Z0Dig==}
+  globals@15.15.0:
+    resolution: {integrity: sha512-7ACyT3wmyp3I61S4fG682L0VA2RGD9otkqGJIwNUMF1SWUombIIk+af1unuDYgMm082aHYwD+mzJvv9Iu8dsgg==}
     engines: {node: '>=18'}
 
   graceful-fs@4.2.11:
@@ -2244,11 +2238,6 @@ snapshots:
   '@esbuild/win32-x64@0.25.3':
     optional: true
 
-  '@eslint-community/eslint-utils@4.4.1(eslint@9.22.0)':
-    dependencies:
-      eslint: 9.22.0
-      eslint-visitor-keys: 3.4.3
-
   '@eslint-community/eslint-utils@4.5.0(eslint@9.22.0)':
     dependencies:
       eslint: 9.22.0
@@ -2848,19 +2837,19 @@ snapshots:
 
   eslint-plugin-es-x@7.8.0(eslint@9.22.0):
     dependencies:
-      '@eslint-community/eslint-utils': 4.4.1(eslint@9.22.0)
+      '@eslint-community/eslint-utils': 4.6.1(eslint@9.22.0)
       '@eslint-community/regexpp': 4.12.1
       eslint: 9.22.0
       eslint-compat-utils: 0.5.1(eslint@9.22.0)
 
-  eslint-plugin-n@17.15.1(eslint@9.22.0):
+  eslint-plugin-n@17.17.0(eslint@9.22.0):
     dependencies:
-      '@eslint-community/eslint-utils': 4.4.1(eslint@9.22.0)
+      '@eslint-community/eslint-utils': 4.6.1(eslint@9.22.0)
       enhanced-resolve: 5.18.1
       eslint: 9.22.0
       eslint-plugin-es-x: 7.8.0(eslint@9.22.0)
       get-tsconfig: 4.10.0
-      globals: 15.14.0
+      globals: 15.15.0
       ignore: 5.3.2
       minimatch: 9.0.5
       semver: 7.7.1
@@ -3056,7 +3045,7 @@ snapshots:
 
   globals@14.0.0: {}
 
-  globals@15.14.0: {}
+  globals@15.15.0: {}
 
   graceful-fs@4.2.11: {}
 
