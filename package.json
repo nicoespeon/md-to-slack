@@ -49,7 +49,7 @@
     "prettier": "^3.4.2",
     "prettier-plugin-curly": "^0.3.1",
     "prettier-plugin-packagejson": "^2.5.6",
-    "prettier-plugin-sh": "^0.16.0",
+    "prettier-plugin-sh": "^0.17.4",
     "tsup": "^8.3.5",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0",
