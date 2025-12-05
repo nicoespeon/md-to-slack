@@ -38,14 +38,46 @@ const renderer = {
   },
 
   list(token) {
+    /**
+     * Parse list item content, handling both inline formatting and nested blocks.
+     * For text with inline formatting (bold, italic, links), we need parseInline.
+     * For nested lists or other block elements, we use parse.
+     */
+    const parseItemContent = (
+      itemTokens: (typeof token.items)[0]["tokens"],
+    ) => {
+      // Check for block-level elements that need full parsing
+      const hasBlockContent = itemTokens.some(
+        (t) =>
+          t.type === "list" || t.type === "code" || t.type === "blockquote",
+      );
+
+      if (hasBlockContent) {
+        return this.parser.parse(itemTokens);
+      }
+
+      // Process text tokens' inline children for proper formatting
+      return itemTokens
+        .map((t) => {
+          if (t.type === "text" && "tokens" in t && t.tokens) {
+            // Text tokens may have inline children (bold, links, etc.)
+            return this.parser.parseInline(t.tokens);
+          } else if (t.type === "space") {
+            return t.raw;
+          }
+          return this.parser.parse([t]);
+        })
+        .join("");
+    };
+
     const items = token.ordered
       ? token.items.map(
           (item, i) =>
-            `${Number(token.start) + i}. ${this.parser.parse(item.tokens)}`,
+            `${Number(token.start) + i}. ${parseItemContent(item.tokens)}`,
         )
       : token.items.map((item) => {
           const marker = item.task ? (item.checked ? "☒" : "☐") : "-";
-          return `${marker} ${this.parser.parse(item.tokens)}`;
+          return `${marker} ${parseItemContent(item.tokens)}`;
         });
 
     const firstItem = token.items[0].raw;
