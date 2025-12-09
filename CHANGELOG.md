@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/nicoespeon/md-to-slack/compare/v1.0.0...v1.1.0) (2025-12-09)
+
+
+### Features
+
+* convert inline formatting inside list items ([#43](https://github.com/nicoespeon/md-to-slack/issues/43)) ([e0aa1e9](https://github.com/nicoespeon/md-to-slack/commit/e0aa1e91e655a2f5b9bec7e71a8c388e82e97490))
+
 ## 1.0.0 (2025-03-07)
 
 
