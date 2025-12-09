@@ -195,6 +195,7 @@ It's fine if you don't follow the convention yourself for the commits. If you op
   <tbody>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://nicoespeon.com/"><img src="https://avatars0.githubusercontent.com/u/1094774?v=4?s=100" width="100px;" alt="Nicolas Carlo"/><br /><sub><b>Nicolas Carlo</b></sub></a><br /><a href="#ideas-nicoespeon" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/nicoespeon/md-to-slack/commits?author=nicoespeon" title="Code">💻</a> <a href="https://github.com/nicoespeon/md-to-slack/commits?author=nicoespeon" title="Documentation">📖</a> <a href="https://github.com/nicoespeon/md-to-slack/pulls?q=is%3Apr+reviewed-by%3Anicoespeon" title="Reviewed Pull Requests">👀</a> <a href="#question-nicoespeon" title="Answering Questions">💬</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://matthewbuck.com"><img src="https://avatars.githubusercontent.com/u/2220?v=4?s=100" width="100px;" alt="Matt Buck"/><br /><sub><b>Matt Buck</b></sub></a><br /><a href="https://github.com/nicoespeon/md-to-slack/commits?author=techpeace" title="Code">💻</a></td>
     </tr>
   </tbody>
   <tfoot>
