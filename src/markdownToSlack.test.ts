@@ -296,7 +296,6 @@ console.log(some);
       const result = markdownToSlack(`- [x] #739
 - [ ] https://github.com/octo-org/octo-repo/issues/740
 - [ ] Add delight to the experience when all tasks are complete :tada:`);
-      // Note: URLs are now correctly converted to Slack link format
       expect(result).toBe(`☒ #739
 ☐ <https://github.com/octo-org/octo-repo/issues/740>
 ☐ Add delight to the experience when all tasks are complete :tada:`);
