@@ -222,6 +222,22 @@ console.log(some);
 - How are you?`);
     });
 
+    test("converts inline formatting inside unordered list items", () => {
+      const result =
+        markdownToSlack(`- **Bold item**: Description [link](http://example.com)
+- Another *italic* item`);
+      expect(result).toBe(`- *Bold item*: Description <http://example.com|link>
+- Another _italic_ item`);
+    });
+
+    test("converts inline formatting inside ordered list items", () => {
+      const result =
+        markdownToSlack(`1. **First item**: With a [link](http://example.com)
+2. **Second item**: More ~~strikethrough~~ text`);
+      expect(result).toBe(`1. *First item*: With a <http://example.com|link>
+2. *Second item*: More ~strikethrough~ text`);
+    });
+
     test("supports +", () => {
       const result = markdownToSlack(`+ Hello world!
 + How are you?`);
@@ -281,7 +297,7 @@ console.log(some);
 - [ ] https://github.com/octo-org/octo-repo/issues/740
 - [ ] Add delight to the experience when all tasks are complete :tada:`);
       expect(result).toBe(`☒ #739
-☐ https://github.com/octo-org/octo-repo/issues/740
+☐ <https://github.com/octo-org/octo-repo/issues/740>
 ☐ Add delight to the experience when all tasks are complete :tada:`);
     });
   });
