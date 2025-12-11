@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.2](https://github.com/nicoespeon/md-to-slack/compare/v1.1.1...v1.1.2) (2025-12-11)
+
+
+### Bug Fixes
+
+* **publish:** use npm trusted publishing ([a2165d3](https://github.com/nicoespeon/md-to-slack/commit/a2165d31a261e0a7b2f4d6c1edaf76890df52b42))
+
 ## [1.1.1](https://github.com/nicoespeon/md-to-slack/compare/v1.1.0...v1.1.1) (2025-12-11)
 
 
