@@ -9,6 +9,7 @@ runs:
       with:
         cache: pnpm
         node-version: "22"
+        registry-url: "https://registry.npmjs.org"
     - run: pnpm install --frozen-lockfile
       shell: bash
   using: composite
