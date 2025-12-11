@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.5](https://github.com/nicoespeon/md-to-slack/compare/v1.1.4...v1.1.5) (2025-12-11)
+
+
+### Bug Fixes
+
+* **publish:** provide NODE_AUTH_TOKEN to publish step ([6b6ec46](https://github.com/nicoespeon/md-to-slack/commit/6b6ec462c52c332c351d8d1287a8a96be94ab181))
+
 ## [1.1.4](https://github.com/nicoespeon/md-to-slack/compare/v1.1.3...v1.1.4) (2025-12-11)
 
 
