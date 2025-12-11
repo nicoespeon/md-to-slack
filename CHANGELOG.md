@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.7](https://github.com/nicoespeon/md-to-slack/compare/v1.1.6...v1.1.7) (2025-12-11)
+
+
+### Bug Fixes
+
+* **publish:** ensure GitHub has latest NPM for publish ([a5bcd4e](https://github.com/nicoespeon/md-to-slack/commit/a5bcd4ec737985ad1ea5ff92db870834d27b2b98))
+
 ## [1.1.6](https://github.com/nicoespeon/md-to-slack/compare/v1.1.5...v1.1.6) (2025-12-11)
 
 
