@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.3](https://github.com/nicoespeon/md-to-slack/compare/v1.1.2...v1.1.3) (2025-12-11)
+
+
+### Bug Fixes
+
+* **publish:** merge publish & release workflows ([bd3061c](https://github.com/nicoespeon/md-to-slack/commit/bd3061c07af30dea997977511c7852ac5414e197))
+
 ## [1.1.2](https://github.com/nicoespeon/md-to-slack/compare/v1.1.1...v1.1.2) (2025-12-11)
 
 
