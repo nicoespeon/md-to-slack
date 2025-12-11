@@ -43,6 +43,9 @@ jobs:
           cache: pnpm
           node-version: 22
           registry-url: "https://registry.npmjs.org"
+      # Ensure npm 11.5.1 or later for trusted publishing
+      - name: Update NPM
+        run: npm install -g npm@latest
       - name: Build Packages
         if: ${{ steps.release.outputs.release_created }}
         run: |
