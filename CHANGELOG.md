@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.4](https://github.com/nicoespeon/md-to-slack/compare/v1.1.3...v1.1.4) (2025-12-11)
+
+
+### Bug Fixes
+
+* **publish:** add registry for trusted publishing ([f63bb37](https://github.com/nicoespeon/md-to-slack/commit/f63bb37372594b56b34eca70c761bb621f84ae0b))
+* **publish:** use custom PAT for release-please ([d428844](https://github.com/nicoespeon/md-to-slack/commit/d428844a61d810ffd8ea1392cfe178e6a536c3d0))
+
 ## [1.1.3](https://github.com/nicoespeon/md-to-slack/compare/v1.1.2...v1.1.3) (2025-12-11)
 
 
