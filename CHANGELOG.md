@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/nicoespeon/md-to-slack/compare/v1.1.0...v1.1.1) (2025-12-11)
+
+
+### Bug Fixes
+
+* **publish:** add missing build step ([db1837c](https://github.com/nicoespeon/md-to-slack/commit/db1837c1d7712bf2011f49b952b6187f4be98b1f)), closes [#47](https://github.com/nicoespeon/md-to-slack/issues/47)
+
 ## [1.1.0](https://github.com/nicoespeon/md-to-slack/compare/v1.0.0...v1.1.0) (2025-12-09)
 
 
