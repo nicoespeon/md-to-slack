@@ -33,11 +33,21 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         if: ${{ steps.release.outputs.release_created }}
-      - uses: ./.github/actions/prepare
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
         if: ${{ steps.release.outputs.release_created }}
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        if: ${{ steps.release.outputs.release_created }}
+        with:
+          cache: pnpm
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
       - name: Build Packages
         if: ${{ steps.release.outputs.release_created }}
-        run: pnpm build
+        run: |
+          pnpm install
+          pnpm build
       - name: Publish to NPM
         if: ${{ steps.release.outputs.release_created }}
         run: npm publish
