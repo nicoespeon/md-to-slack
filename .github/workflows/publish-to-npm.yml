@@ -12,6 +12,7 @@ on:
 
 permissions:
   id-token: write
+  contents: read
 
 jobs:
   publish:
@@ -22,6 +23,4 @@ jobs:
       - run: pnpm build
       - run: pnpm tsc
       - run: pnpm test
-      - uses: JS-DevTools/npm-publish@v3
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
+      - uses: JS-DevTools/npm-publish@v4
