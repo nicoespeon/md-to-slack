@@ -3,7 +3,9 @@
   "projectOwner": "nicoespeon",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "files": ["README.md"],
+  "files": [
+    "README.md"
+  ],
   "imageSize": 100,
   "commit": false,
   "commitConvention": "angular",
@@ -16,14 +18,31 @@
       "name": "Nicolas Carlo",
       "avatar_url": "https://avatars0.githubusercontent.com/u/1094774?v=4",
       "profile": "https://nicoespeon.com/",
-      "contributions": ["ideas", "code", "doc", "review", "question"]
+      "contributions": [
+        "ideas",
+        "code",
+        "doc",
+        "review",
+        "question"
+      ]
     },
     {
       "login": "techpeace",
       "name": "Matt Buck",
       "avatar_url": "https://avatars.githubusercontent.com/u/2220?v=4",
       "profile": "https://matthewbuck.com",
-      "contributions": ["code"]
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "MattMencel",
+      "name": "Matt Mencel",
+      "avatar_url": "https://avatars.githubusercontent.com/u/78883?v=4",
+      "profile": "https://github.com/MattMencel",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "commitType": "docs",
