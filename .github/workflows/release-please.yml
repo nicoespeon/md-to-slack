@@ -1,10 +1,10 @@
-# Uses release-please to manage automatic releases from conventional commits.
-# It maintains the CHANGELOG, versioning and creation of GitHub releases.
-# It does not publish to npm.
+# Automates releases from conventional commits using release-please.
+# It maintains the CHANGELOG, versioning, and creation of GitHub releases.
+# When a Release PR is merged, it also publishes to npm via OIDC trusted publishing.
 #
 # Docs: https://github.com/marketplace/actions/release-please-action
 
-name: Create new release
+name: Release
 
 on:
   push:
@@ -26,7 +26,7 @@ jobs:
         id: release
         with:
           # Use a custom token to trigger CI workflow
-          token: ${{ secrets.MY_RELEASE_PLEASE_TOKEN }}
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
           release-type: node
 
       # Once the PR is merged, publish to npm
@@ -41,16 +41,17 @@ jobs:
         if: ${{ steps.release.outputs.release_created }}
         with:
           cache: pnpm
-          node-version: 22
+          node-version: "22"
           registry-url: "https://registry.npmjs.org"
       # Ensure npm 11.5.1 or later for trusted publishing
-      - name: Update NPM
+      - name: Update npm
+        if: ${{ steps.release.outputs.release_created }}
         run: npm install -g npm@latest
       - name: Build Packages
         if: ${{ steps.release.outputs.release_created }}
         run: |
-          pnpm install
+          pnpm install --frozen-lockfile
           pnpm build
-      - name: Publish to NPM
+      - name: Publish to npm
         if: ${{ steps.release.outputs.release_created }}
         run: npm publish
