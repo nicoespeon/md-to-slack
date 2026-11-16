@@ -52,16 +52,29 @@ const renderer = {
       // Process text tokens' inline children for proper formatting
       return itemTokens
         .map((t, i) => {
-          if (t.type === "text" && "tokens" in t && t.tokens) {
-            // Text tokens may have inline children (bold, links, etc.)
-            return this.parser.parseInline(t.tokens);
-          } else if (t.type === "space") {
+          if (t.type === "space") {
             const isBeforeNestedList = itemTokens[i + 1]?.type === "list";
             return isBeforeNestedList ? "" : t.raw;
           } else if (t.type === "list") {
             return `\n${indent(this.parser.parse([t]))}`;
           }
-          return this.parser.parse([t]);
+
+          // Text tokens may have inline children (bold, links, etc.)
+          const block =
+            t.type === "text" && "tokens" in t && t.tokens
+              ? this.parser.parseInline(t.tokens)
+              : this.parser.parse([t]);
+
+          const previous = itemTokens[i - 1];
+          const continuesMarkerLine = !previous || previous.type === "checkbox";
+          // An HTML block renders its own line breaks.
+          if (continuesMarkerLine || t.type === "html") {
+            return block;
+          }
+
+          const isParagraph = t.type === "paragraph" || t.type === "text";
+          const indented = isParagraph ? indent(block) : block;
+          return previous.type === "space" ? indented : `\n${indented}`;
         })
         .join("");
     };
@@ -158,7 +171,23 @@ const renderer = {
 } satisfies MarkedExtension["renderer"];
 
 function indent(text: string) {
-  return text.replace(/^/gm, "  ");
+  return text
+    .split("\n")
+    .reduce<{ lines: string[]; isInCode: boolean }>(
+      ({ lines, isInCode }, line) => {
+        // Indenting a code block would add spaces to the code itself.
+        const isCode = isInCode || line.startsWith("```");
+        const isIndented = !isCode && line !== "";
+        // A fence can open on a marker's line, when code starts an item.
+        const isFence = line.split("```").length === 2;
+        return {
+          lines: [...lines, isIndented ? `  ${line}` : line],
+          isInCode: isFence ? !isInCode : isInCode,
+        };
+      },
+      { lines: [], isInCode: false },
+    )
+    .lines.join("\n");
 }
 
 function cleanUrl(href: string) {
