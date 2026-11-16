@@ -3,7 +3,7 @@ import n from "eslint-plugin-n";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", "node_modules", "pnpm-lock.yaml"] },
+  { ignores: [".claude", "dist", "node_modules", "pnpm-lock.yaml"] },
   { linterOptions: { reportUnusedDisableDirectives: "error" } },
   eslint.configs.recommended,
   n.configs["flat/recommended"],
