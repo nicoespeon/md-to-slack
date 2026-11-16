@@ -474,6 +474,146 @@ x     | y   | z
 ☐ <https://github.com/octo-org/octo-repo/issues/740>
 ☐ Add delight to the experience when all tasks are complete :tada:`);
     });
+
+    test("indents the second paragraph of an item", () => {
+      const result = markdownToSlack(`- a
+
+  b
+- c`);
+      expect(result).toBe(`- a
+
+  b
+- c`);
+    });
+
+    test("puts a code block of an item on its own line, not indented", () => {
+      const result = markdownToSlack(`- a
+  \`\`\`
+  code
+  \`\`\`
+- b`);
+      expect(result).toBe(`- a
+\`\`\`
+code
+\`\`\`
+- b`);
+    });
+
+    test("indents the second paragraph of an ordered item", () => {
+      const result = markdownToSlack(`1. a
+
+   b
+2. c`);
+      expect(result).toBe(`1. a
+
+  b
+2. c`);
+    });
+
+    test("indents every line of the second paragraph of an item", () => {
+      const result = markdownToSlack(`- a
+
+  b
+  c
+- d`);
+      expect(result).toBe(`- a
+
+  b
+  c
+- d`);
+    });
+
+    test("converts inline formatting in the second paragraph of an item", () => {
+      const result = markdownToSlack(`- a
+
+  **b** [link](http://example.com)
+- c`);
+      expect(result).toBe(`- a
+
+  *b* <http://example.com|link>
+- c`);
+    });
+
+    test("indents the second paragraph of a nested item", () => {
+      const result = markdownToSlack(`- a
+  - b
+
+    c
+- d`);
+      expect(result).toBe(`- a
+  - b
+
+    c
+- d`);
+    });
+
+    test("does not indent a code block of a nested item", () => {
+      const result = markdownToSlack(`- a
+  - b
+    \`\`\`
+    code
+    \`\`\`
+- c`);
+      expect(result).toBe(`- a
+  - b
+\`\`\`
+code
+\`\`\`
+- c`);
+    });
+
+    test("puts a blockquote of an item on its own line", () => {
+      const result = markdownToSlack(`- a
+  > quote
+- b`);
+      expect(result).toBe(`- a
+> quote
+- b`);
+    });
+
+    test("puts a heading of an item on its own line", () => {
+      const result = markdownToSlack(`- a
+  # Title
+- b`);
+      expect(result).toBe(`- a
+*Title*
+- b`);
+    });
+
+    test("puts a horizontal rule of an item on its own line", () => {
+      const result = markdownToSlack(`- a
+  ***
+- b`);
+      expect(result).toBe(`- a
+***
+- b`);
+    });
+
+    test("puts a table of an item on its own lines", () => {
+      const result = markdownToSlack(`- a
+
+  | x | y |
+  |---|---|
+  | 1 | 2 |
+- b`);
+      expect(result).toBe(`- a
+
+\`\`\`
+x | y
+--|--
+1 | 2
+\`\`\`
+- b`);
+    });
+
+    test("converts a <br> on its own line in an item to a single blank line", () => {
+      const result = markdownToSlack(`- a
+  <br>
+- b`);
+      expect(result).toBe(`- a
+
+- b`);
+    });
   });
 
   describe("preserves horizontal rules to Slack syntax", () => {
