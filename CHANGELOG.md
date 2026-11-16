@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.8](https://github.com/nicoespeon/md-to-slack/compare/v1.1.7...v1.1.8) (2026-11-16)
+
+
+### Bug Fixes
+
+* render nested lists on their own line regardless of indentation ([0a3826b](https://github.com/nicoespeon/md-to-slack/commit/0a3826b336128195a4b611b6188a618fd609c3dc)), closes [#82](https://github.com/nicoespeon/md-to-slack/issues/82)
+
 ## [1.1.7](https://github.com/nicoespeon/md-to-slack/compare/v1.1.6...v1.1.7) (2025-12-11)
 
 
