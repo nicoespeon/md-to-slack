@@ -51,7 +51,7 @@ All of the [basic Markdown syntax](https://www.markdownguide.org/basic-syntax/) 
 A few remarks though:
 
 - Headings (`#`, `##`, etc.) are not supported by mrkdwn, so they are rendered in bold
-- Images are not supported either, so they are stripped out
+- Images can't be displayed by mrkdwn either, so they are converted into a link to the image, labelled with its alt text
 - GitHub Flavored Markdown checkboxes are converted into an equivalent emoji (☐ or ☒)
 - Tables are not supported by mrkdwn either, so they are rendered as aligned text in a code block
 
