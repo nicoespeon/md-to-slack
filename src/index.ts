@@ -1,4 +1,11 @@
-import { marked, MarkedExtension } from "marked";
+import {
+  marked,
+  MarkedExtension,
+  Parser,
+  TextRenderer,
+  Token,
+  Tokens,
+} from "marked";
 
 /**
  * Docs: https://marked.js.org/using_pro#renderer
@@ -33,7 +40,9 @@ const renderer = {
   heading(token) {
     // Since marked 18, a blank line after a heading is its own space token.
     const isFollowedByBlankLine = !token.raw.endsWith("\n");
-    return isFollowedByBlankLine ? token.text : `${token.text}\n\n`;
+    const text = this.parser.parseInline(unwrapBold(token.tokens));
+    const boldText = text ? `*${text}*` : "";
+    return isFollowedByBlankLine ? boldText : `${boldText}\n\n`;
   },
 
   hr(token) {
@@ -104,8 +113,35 @@ const renderer = {
     return this.parser.parseInline(token.tokens);
   },
 
-  table() {
-    return "";
+  table(token) {
+    const rows = [token.header, ...token.rows].map((row) =>
+      row.map((cell) => toPlainText(cell.tokens, this.parser)),
+    );
+    const columnWidths = token.align.map((_, column) =>
+      Math.max(...rows.map((row) => row[column].length)),
+    );
+    const [header, ...body] = rows.map((row) =>
+      row
+        .map((cell, column) =>
+          pad(cell, columnWidths[column], token.align[column]),
+        )
+        .join(" | ")
+        .trimEnd(),
+    );
+    const separator = columnWidths
+      .map((width) => "-".repeat(width))
+      .join("-|-");
+
+    // Escaped after padding: Slack displays an entity as a single character.
+    const lines = [header, separator, ...body].map((line) =>
+      this.text({ type: "text", raw: line, text: line }),
+    );
+
+    const codeBlock = ["```", ...lines, "```"].join("\n");
+
+    // No blank line after the table: keep the next block off the fence line.
+    const isDirectlyFollowedByBlock = token.raw.endsWith("\n");
+    return isDirectlyFollowedByBlock ? `${codeBlock}\n` : codeBlock;
   },
 
   tablerow() {
@@ -144,7 +180,7 @@ const renderer = {
   },
 
   link(token) {
-    const text = this.parser.parseInline(token.tokens);
+    const text = this.parser.parseInline(unwrapLinksAndImages(token.tokens));
     const url = cleanUrl(token.href);
 
     return url === text || url === `mailto:${text}` || !text
@@ -152,9 +188,12 @@ const renderer = {
       : `<${url}|${text}>`;
   },
 
-  image() {
-    // Images are not supported by mrkdwn. Use Slack Block Kit for that.
-    return "";
+  image(token) {
+    // mrkdwn can't display images, so we link to them. Use Slack Block Kit to show them.
+    const url = cleanUrl(token.href);
+    const altText = this.parser.parseInline(unwrapLinksAndImages(token.tokens));
+
+    return altText ? `<${url}|${altText}>` : `<${url}>`;
   },
 
   text(token) {
@@ -169,6 +208,11 @@ const renderer = {
 
   // #endregion
 } satisfies MarkedExtension["renderer"];
+
+// Slack doesn't render bold nested in bold.
+function unwrapBold(tokens: Token[]) {
+  return unwrap(tokens, ["strong"]);
+}
 
 function indent(text: string) {
   return text
@@ -190,12 +234,61 @@ function indent(text: string) {
     .lines.join("\n");
 }
 
+function pad(text: string, width: number, alignment: ColumnAlignment) {
+  const padByAlignment = {
+    left: () => text.padEnd(width),
+    right: () => text.padStart(width),
+    center: () =>
+      text
+        .padStart(text.length + Math.floor((width - text.length) / 2))
+        .padEnd(width),
+  } satisfies Record<NonNullable<ColumnAlignment>, () => string>;
+
+  return padByAlignment[alignment ?? "left"]();
+}
+
+type ColumnAlignment = Tokens.Table["align"][number];
+
+function toPlainText(tokens: Token[], parser: Parser) {
+  const plainTextRenderer: TextRenderer = Object.assign(new TextRenderer(), {
+    parser,
+    link(token: Tokens.Link) {
+      const text = parser.parseInline(token.tokens, plainTextRenderer);
+      const url = cleanUrl(token.href);
+
+      return url === text || url === `mailto:${text}` || !text
+        ? url
+        : `${text} (${url})`;
+    },
+  });
+
+  return parser.parseInline(tokens, plainTextRenderer);
+}
+
 function cleanUrl(href: string) {
   try {
     return encodeURI(href).replace(/%25/g, "%");
   } catch {
     return href;
   }
+}
+
+// Slack can't parse a link nested in another one.
+function unwrapLinksAndImages(tokens: Token[]) {
+  return unwrap(tokens, ["link", "image"]);
+}
+
+function unwrap(tokens: Token[], types: Token["type"][]): Token[] {
+  return tokens.flatMap((token) => {
+    if (!("tokens" in token) || !token.tokens) {
+      return [token];
+    }
+
+    const children = unwrap(token.tokens, types);
+    return types.includes(token.type)
+      ? children
+      : [{ ...token, tokens: children }];
+  });
 }
 
 marked.use({ renderer });
