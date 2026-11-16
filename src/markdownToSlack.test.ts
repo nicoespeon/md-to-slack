@@ -576,7 +576,7 @@ code
   # Title
 - b`);
       expect(result).toBe(`- a
-Title
+*Title*
 - b`);
     });
 
