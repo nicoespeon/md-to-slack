@@ -589,6 +589,23 @@ code
 - b`);
     });
 
+    test("puts a table of an item on its own lines", () => {
+      const result = markdownToSlack(`- a
+
+  | x | y |
+  |---|---|
+  | 1 | 2 |
+- b`);
+      expect(result).toBe(`- a
+
+\`\`\`
+x | y
+--|--
+1 | 2
+\`\`\`
+- b`);
+    });
+
     test("converts a <br> on its own line in an item to a single blank line", () => {
       const result = markdownToSlack(`- a
   <br>
