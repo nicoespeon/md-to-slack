@@ -1,4 +1,11 @@
-import { marked, MarkedExtension, Token } from "marked";
+import {
+  marked,
+  MarkedExtension,
+  Parser,
+  TextRenderer,
+  Token,
+  Tokens,
+} from "marked";
 
 /**
  * Docs: https://marked.js.org/using_pro#renderer
@@ -93,8 +100,35 @@ const renderer = {
     return this.parser.parseInline(token.tokens);
   },
 
-  table() {
-    return "";
+  table(token) {
+    const rows = [token.header, ...token.rows].map((row) =>
+      row.map((cell) => toPlainText(cell.tokens, this.parser)),
+    );
+    const columnWidths = token.align.map((_, column) =>
+      Math.max(...rows.map((row) => row[column].length)),
+    );
+    const [header, ...body] = rows.map((row) =>
+      row
+        .map((cell, column) =>
+          pad(cell, columnWidths[column], token.align[column]),
+        )
+        .join(" | ")
+        .trimEnd(),
+    );
+    const separator = columnWidths
+      .map((width) => "-".repeat(width))
+      .join("-|-");
+
+    // Escaped after padding: Slack displays an entity as a single character.
+    const lines = [header, separator, ...body].map((line) =>
+      this.text({ type: "text", raw: line, text: line }),
+    );
+
+    const codeBlock = ["```", ...lines, "```"].join("\n");
+
+    // No blank line after the table: keep the next block off the fence line.
+    const isDirectlyFollowedByBlock = token.raw.endsWith("\n");
+    return isDirectlyFollowedByBlock ? `${codeBlock}\n` : codeBlock;
   },
 
   tablerow() {
@@ -169,6 +203,37 @@ function unwrapBold(tokens: Token[]) {
 
 function indent(text: string) {
   return text.replace(/^/gm, "  ");
+}
+
+function pad(text: string, width: number, alignment: ColumnAlignment) {
+  const padByAlignment = {
+    left: () => text.padEnd(width),
+    right: () => text.padStart(width),
+    center: () =>
+      text
+        .padStart(text.length + Math.floor((width - text.length) / 2))
+        .padEnd(width),
+  } satisfies Record<NonNullable<ColumnAlignment>, () => string>;
+
+  return padByAlignment[alignment ?? "left"]();
+}
+
+type ColumnAlignment = Tokens.Table["align"][number];
+
+function toPlainText(tokens: Token[], parser: Parser) {
+  const plainTextRenderer: TextRenderer = Object.assign(new TextRenderer(), {
+    parser,
+    link(token: Tokens.Link) {
+      const text = parser.parseInline(token.tokens, plainTextRenderer);
+      const url = cleanUrl(token.href);
+
+      return url === text || url === `mailto:${text}` || !text
+        ? url
+        : `${text} (${url})`;
+    },
+  });
+
+  return parser.parseInline(tokens, plainTextRenderer);
 }
 
 function cleanUrl(href: string) {
