@@ -1,4 +1,4 @@
-import { marked, MarkedExtension } from "marked";
+import { marked, MarkedExtension, Token } from "marked";
 
 /**
  * Docs: https://marked.js.org/using_pro#renderer
@@ -131,7 +131,7 @@ const renderer = {
   },
 
   link(token) {
-    const text = this.parser.parseInline(token.tokens);
+    const text = this.parser.parseInline(unwrapLinksAndImages(token.tokens));
     const url = cleanUrl(token.href);
 
     return url === text || url === `mailto:${text}` || !text
@@ -139,9 +139,12 @@ const renderer = {
       : `<${url}|${text}>`;
   },
 
-  image() {
-    // Images are not supported by mrkdwn. Use Slack Block Kit for that.
-    return "";
+  image(token) {
+    // mrkdwn can't display images, so we link to them. Use Slack Block Kit to show them.
+    const url = cleanUrl(token.href);
+    const altText = this.parser.parseInline(unwrapLinksAndImages(token.tokens));
+
+    return altText ? `<${url}|${altText}>` : `<${url}>`;
   },
 
   text(token) {
@@ -167,6 +170,20 @@ function cleanUrl(href: string) {
   } catch {
     return href;
   }
+}
+
+// Slack can't parse a link nested in another one.
+function unwrapLinksAndImages(tokens: Token[]): Token[] {
+  return tokens.flatMap((token) => {
+    if (!("tokens" in token) || !token.tokens) {
+      return [token];
+    }
+
+    const children = unwrapLinksAndImages(token.tokens);
+    return token.type === "link" || token.type === "image"
+      ? children
+      : [{ ...token, tokens: children }];
+  });
 }
 
 marked.use({ renderer });

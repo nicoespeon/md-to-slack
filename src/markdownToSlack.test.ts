@@ -403,17 +403,65 @@ How are you?`);
     });
   });
 
-  describe("removes unsupported images", () => {
-    test("removes image code", () => {
+  describe("converts images to links", () => {
+    test("links to the image, labelled with its alt text", () => {
       const result = markdownToSlack(
         "My image: ![alt text](https://github.com/logo.png 'optional title')",
       );
-      expect(result).toBe("My image:");
+      expect(result).toBe("My image: <https://github.com/logo.png|alt text>");
     });
 
-    test("removes image code within a link", () => {
+    test("links to the image URL alone when there is no alt text", () => {
+      const result = markdownToSlack(
+        "My image: ![](https://github.com/logo.png)",
+      );
+      expect(result).toBe("My image: <https://github.com/logo.png>");
+    });
+
+    test("escapes &, < and > in the alt text", () => {
+      const result = markdownToSlack(
+        "My image: ![Tom & Jerry <3 > all](https://github.com/logo.png)",
+      );
+      expect(result).toBe(
+        "My image: <https://github.com/logo.png|Tom &amp; Jerry &lt;3 &gt; all>",
+      );
+    });
+
+    test("converts reference-style images", () => {
+      const result = markdownToSlack(`My image: ![alt text][logo]
+
+[logo]: https://github.com/logo.png 'optional title'`);
+      expect(result).toBe("My image: <https://github.com/logo.png|alt text>");
+    });
+
+    test("labels a link with the alt text of the image it wraps", () => {
       const result = markdownToSlack(
         `My image: [![An old rock](/assets/images/shiprock.jpg "Shiprock, New Mexico")](https://www.flickr.com/photos/beaurogers/3183)`,
+      );
+      expect(result).toBe(
+        "My image: <https://www.flickr.com/photos/beaurogers/3183|An old rock>",
+      );
+    });
+
+    test("keeps the formatting around an image wrapped in a link", () => {
+      const result = markdownToSlack(
+        "My image: [*![alt text](https://github.com/logo.png)*](https://github.com)",
+      );
+      expect(result).toBe("My image: <https://github.com|_alt text_>");
+    });
+
+    test("keeps only the text of a link in the alt text", () => {
+      const result = markdownToSlack(
+        "My image: ![the [GitHub](https://github.com) logo](https://github.com/logo.png)",
+      );
+      expect(result).toBe(
+        "My image: <https://github.com/logo.png|the GitHub logo>",
+      );
+    });
+
+    test("keeps only the link when the image it wraps has no alt text", () => {
+      const result = markdownToSlack(
+        "My image: [![](/assets/images/shiprock.jpg)](https://www.flickr.com/photos/beaurogers/3183)",
       );
       expect(result).toBe(
         "My image: <https://www.flickr.com/photos/beaurogers/3183>",
