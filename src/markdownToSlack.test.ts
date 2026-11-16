@@ -321,7 +321,7 @@ A | B
 --|--
 1 | 2
 \`\`\`
-After`);
+*After*`);
     });
 
     test("keeps columns aligned with empty cells and uneven rows", () => {
@@ -538,29 +538,29 @@ How are you?`);
     });
   });
 
-  describe("removes unsupported headings", () => {
-    test("removes #", () => {
+  describe("converts headings to bold", () => {
+    test("converts # to bold", () => {
       const result = markdownToSlack("# Hello world!");
-      expect(result).toBe("Hello world!");
+      expect(result).toBe("*Hello world!*");
     });
 
-    test("removes === underline", () => {
+    test("converts === underline to bold", () => {
       const result = markdownToSlack(`
 Hello world!
 =====
 
 How are you?`);
       expect(result).toBe(`
-Hello world!
+*Hello world!*
 
 How are you?`);
     });
 
-    test("removes ##", () => {
+    test("converts ## to bold", () => {
       const result = markdownToSlack(`## Hello world!
 
 How are you?`);
-      expect(result).toBe(`Hello world!
+      expect(result).toBe(`*Hello world!*
 
 How are you?`);
     });
@@ -568,41 +568,81 @@ How are you?`);
     test("separates a heading from text on the next line", () => {
       const result = markdownToSlack(`## Hello world!
 How are you?`);
-      expect(result).toBe(`Hello world!
+      expect(result).toBe(`*Hello world!*
 
 How are you?`);
     });
 
-    test("removes --- underline", () => {
+    test("converts --- underline to bold", () => {
       const result = markdownToSlack(`
 Hello world!
 ------
 
 How are you?`);
       expect(result).toBe(`
-Hello world!
+*Hello world!*
 
 How are you?`);
     });
 
-    test("removes ###", () => {
+    test("converts ### to bold", () => {
       const result = markdownToSlack("### Hello world!");
-      expect(result).toBe("Hello world!");
+      expect(result).toBe("*Hello world!*");
     });
 
-    test("removes ####", () => {
+    test("converts #### to bold", () => {
       const result = markdownToSlack("#### Hello world!");
-      expect(result).toBe("Hello world!");
+      expect(result).toBe("*Hello world!*");
     });
 
-    test("removes #####", () => {
+    test("converts ##### to bold", () => {
       const result = markdownToSlack("##### Hello world!");
-      expect(result).toBe("Hello world!");
+      expect(result).toBe("*Hello world!*");
     });
 
-    test("removes ######", () => {
+    test("converts ###### to bold", () => {
       const result = markdownToSlack("###### Hello world!");
-      expect(result).toBe("Hello world!");
+      expect(result).toBe("*Hello world!*");
+    });
+
+    test("doesn't nest bold inside a heading", () => {
+      const result = markdownToSlack("# Hello **world**");
+      expect(result).toBe("*Hello world*");
+    });
+
+    test("doesn't nest bold inside italic inside a heading", () => {
+      const result = markdownToSlack("# _Hello **big** world_");
+      expect(result).toBe("*_Hello big world_*");
+    });
+
+    test("converts italic inside a heading", () => {
+      const result = markdownToSlack("# Hello _world_");
+      expect(result).toBe("*Hello _world_*");
+    });
+
+    test("converts strikethrough inside a heading", () => {
+      const result = markdownToSlack("# Hello ~~world~~");
+      expect(result).toBe("*Hello ~world~*");
+    });
+
+    test("converts links inside a heading", () => {
+      const result = markdownToSlack("# See [docs](https://example.com)");
+      expect(result).toBe("*See <https://example.com|docs>*");
+    });
+
+    test("preserves inline code inside a heading", () => {
+      const result = markdownToSlack("# Run `npm install` first");
+      expect(result).toBe("*Run `npm install` first*");
+    });
+
+    test("escapes characters inside a heading", () => {
+      const result = markdownToSlack("# Hello & << World >>");
+      expect(result).toBe("*Hello &amp; &lt;&lt; World &gt;&gt;*");
+    });
+
+    test("renders an empty heading as an empty string", () => {
+      const result = markdownToSlack("#");
+      expect(result).toBe("");
     });
   });
 
