@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.2.0](https://github.com/nicoespeon/md-to-slack/compare/v1.1.8...v1.2.0) (2026-11-16)
+
+
+### Features
+
+* render headings in bold ([#86](https://github.com/nicoespeon/md-to-slack/issues/86)) ([015ec3e](https://github.com/nicoespeon/md-to-slack/commit/015ec3e816d6ace693eec35584ac5b7bd80a52c8))
+* render images as links instead of dropping them ([#87](https://github.com/nicoespeon/md-to-slack/issues/87)) ([dc08fc6](https://github.com/nicoespeon/md-to-slack/commit/dc08fc634112c2c4807ada78333eeaef59bda340))
+* render tables as aligned text in a code block ([#88](https://github.com/nicoespeon/md-to-slack/issues/88)) ([0acf209](https://github.com/nicoespeon/md-to-slack/commit/0acf209ec55b0c9e6174090372d92e23e882c5c6))
+
+
+### Bug Fixes
+
+* keep paragraphs and code blocks of a list item on their own lines ([#89](https://github.com/nicoespeon/md-to-slack/issues/89)) ([0a2192d](https://github.com/nicoespeon/md-to-slack/commit/0a2192d5e779cd1c5a0096fe8ec6ed5e714837cc))
+
 ## [1.1.8](https://github.com/nicoespeon/md-to-slack/compare/v1.1.7...v1.1.8) (2026-11-16)
 
 
