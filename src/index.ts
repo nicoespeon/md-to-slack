@@ -1,4 +1,4 @@
-import { marked, MarkedExtension } from "marked";
+import { marked, MarkedExtension, Token } from "marked";
 
 /**
  * Docs: https://marked.js.org/using_pro#renderer
@@ -33,7 +33,9 @@ const renderer = {
   heading(token) {
     // Since marked 18, a blank line after a heading is its own space token.
     const isFollowedByBlankLine = !token.raw.endsWith("\n");
-    return isFollowedByBlankLine ? token.text : `${token.text}\n\n`;
+    const text = this.parser.parseInline(unwrapBold(token.tokens));
+    const boldText = text ? `*${text}*` : "";
+    return isFollowedByBlankLine ? boldText : `${boldText}\n\n`;
   },
 
   hr(token) {
@@ -156,6 +158,20 @@ const renderer = {
 
   // #endregion
 } satisfies MarkedExtension["renderer"];
+
+// Slack doesn't render bold nested in bold.
+function unwrapBold(tokens: Token[]): Token[] {
+  return tokens.flatMap((token) => {
+    if (!("tokens" in token) || !token.tokens) {
+      return [token];
+    }
+
+    const children = unwrapBold(token.tokens);
+    return token.type === "strong"
+      ? children
+      : [{ ...token, tokens: children }];
+  });
+}
 
 function indent(text: string) {
   return text.replace(/^/gm, "  ");
