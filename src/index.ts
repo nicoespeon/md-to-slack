@@ -12,7 +12,8 @@ const renderer = {
   },
 
   code(token) {
-    return `\`\`\`${token.lang ?? ""}\n${token.text}\n\`\`\``;
+    const text = token.text.replace(/\n$/, "");
+    return `\`\`\`${token.lang ?? ""}\n${text}\n\`\`\``;
   },
 
   blockquote(token) {
@@ -30,7 +31,9 @@ const renderer = {
   },
 
   heading(token) {
-    return `${token.text}\n\n`;
+    // Since marked 18, a blank line after a heading is its own space token.
+    const isFollowedByBlankLine = !token.raw.endsWith("\n");
+    return isFollowedByBlankLine ? token.text : `${token.text}\n\n`;
   },
 
   hr(token) {

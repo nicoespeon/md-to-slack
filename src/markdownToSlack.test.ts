@@ -212,6 +212,17 @@ const some = "code";
 console.log(some);
 \`\`\``);
     });
+
+    test("keeps a blank line between indented code and the next paragraph", () => {
+      const result = markdownToSlack(`    const some = "code";
+
+Done.`);
+      expect(result).toBe(`\`\`\`
+const some = "code";
+\`\`\`
+
+Done.`);
+    });
   });
 
   describe("converts list to Slack syntax", () => {
@@ -431,6 +442,14 @@ How are you?`);
     test("removes ##", () => {
       const result = markdownToSlack(`## Hello world!
 
+How are you?`);
+      expect(result).toBe(`Hello world!
+
+How are you?`);
+    });
+
+    test("separates a heading from text on the next line", () => {
+      const result = markdownToSlack(`## Hello world!
 How are you?`);
       expect(result).toBe(`Hello world!
 
