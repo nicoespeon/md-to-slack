@@ -62,7 +62,7 @@ A few remarks though:
 
 We want to support the [extended syntax](https://www.markdownguide.org/extended-syntax/), in particular GitHub Flavored Markdown niceties.
 
-`mrkdwn` syntax has limited capabilities, so we intend to do a "best possble conversion" like we do for checkboxes and tables.
+`mrkdwn` syntax has limited capabilities, so we intend to do a "best possible conversion" like we do for checkboxes and tables.
 
 But the real deal will be to add the option for generating a Slack Block Kit-compatible output to render rich elements, such as images, checkboxes, tables, and other HTML elements in Slack.
 
