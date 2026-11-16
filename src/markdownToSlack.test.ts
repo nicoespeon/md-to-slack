@@ -292,6 +292,52 @@ console.log(some);
 3. Third item`);
     });
 
+    test("supports nested, unordered list indented with 2 spaces", () => {
+      const result = markdownToSlack(`- a
+  - b
+- c`);
+      expect(result).toBe(`- a
+  - b
+- c`);
+    });
+
+    test("supports nested, ordered list indented with 3 spaces", () => {
+      const result = markdownToSlack(`1. a
+   1. b
+2. c`);
+      expect(result).toBe(`1. a
+  1. b
+2. c`);
+    });
+
+    test("supports deeply nested lists", () => {
+      const result = markdownToSlack(`- a
+  - b
+    - c
+- d`);
+      expect(result).toBe(`- a
+  - b
+    - c
+- d`);
+    });
+
+    test("supports nested list separated by a blank line", () => {
+      const result = markdownToSlack(`- a
+
+  - b
+- c`);
+      expect(result).toBe(`- a
+  - b
+- c`);
+    });
+
+    test("supports nested checkboxes indented with 2 spaces", () => {
+      const result = markdownToSlack(`- [ ] task
+  - [x] subtask`);
+      expect(result).toBe(`☐ task
+  ☒ subtask`);
+    });
+
     test("converts checkboxes to an equivalent emoji", () => {
       const result = markdownToSlack(`- [x] #739
 - [ ] https://github.com/octo-org/octo-repo/issues/740

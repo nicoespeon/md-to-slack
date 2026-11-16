@@ -46,24 +46,17 @@ const renderer = {
     const parseItemContent = (
       itemTokens: (typeof token.items)[0]["tokens"],
     ) => {
-      // Check for block-level elements that need full parsing
-      const hasBlockContent = itemTokens.some(
-        (t) =>
-          t.type === "list" || t.type === "code" || t.type === "blockquote",
-      );
-
-      if (hasBlockContent) {
-        return this.parser.parse(itemTokens);
-      }
-
       // Process text tokens' inline children for proper formatting
       return itemTokens
-        .map((t) => {
+        .map((t, i) => {
           if (t.type === "text" && "tokens" in t && t.tokens) {
             // Text tokens may have inline children (bold, links, etc.)
             return this.parser.parseInline(t.tokens);
           } else if (t.type === "space") {
-            return t.raw;
+            const isBeforeNestedList = itemTokens[i + 1]?.type === "list";
+            return isBeforeNestedList ? "" : t.raw;
+          } else if (t.type === "list") {
+            return `\n${indent(this.parser.parse([t]))}`;
           }
           return this.parser.parse([t]);
         })
@@ -80,16 +73,7 @@ const renderer = {
           return `${marker} ${parseItemContent(item.tokens)}`;
         });
 
-    const firstItem = token.items[0].raw;
-    const indentation = firstItem.match(/^(\s+)/)?.[0];
-    if (!indentation) {
-      return items.join("\n");
-    }
-
-    // If we have leading indentation, nest the list and preserve it
-    // Somehow, nested ordered lists are missing 1 space in raw indentation
-    const newLine = token.ordered ? `\n${indentation} ` : `\n${indentation}`;
-    return newLine + items.join(newLine);
+    return items.join("\n");
   },
 
   listitem() {
@@ -169,6 +153,10 @@ const renderer = {
 
   // #endregion
 } satisfies MarkedExtension["renderer"];
+
+function indent(text: string) {
+  return text.replace(/^/gm, "  ");
+}
 
 function cleanUrl(href: string) {
   try {
