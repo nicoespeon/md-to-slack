@@ -50,8 +50,8 @@ All of the [basic Markdown syntax](https://www.markdownguide.org/basic-syntax/) 
 
 A few remarks though:
 
-- Headings (`#`, `##`, etc.) are not supported by mrkdwn, so they are stripped out
-- Same with images
+- Headings (`#`, `##`, etc.) are not supported by mrkdwn, so they are rendered in bold
+- Images are not supported either, so they are stripped out
 - GitHub Flavored Markdown checkboxes are converted into an equivalent emoji (☐ or ☒)
 
 ### 🔭 Next features
