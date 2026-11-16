@@ -571,6 +571,13 @@ How are you?`);
       expect(result).toBe("*Hello &amp; &lt;&lt; World &gt;&gt;*");
     });
 
+    test("converts images inside a heading", () => {
+      const result = markdownToSlack(
+        "# Logo ![alt text](https://github.com/logo.png)",
+      );
+      expect(result).toBe("*Logo <https://github.com/logo.png|alt text>*");
+    });
+
     test("renders an empty heading as an empty string", () => {
       const result = markdownToSlack("#");
       expect(result).toBe("");

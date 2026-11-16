@@ -163,17 +163,8 @@ const renderer = {
 } satisfies MarkedExtension["renderer"];
 
 // Slack doesn't render bold nested in bold.
-function unwrapBold(tokens: Token[]): Token[] {
-  return tokens.flatMap((token) => {
-    if (!("tokens" in token) || !token.tokens) {
-      return [token];
-    }
-
-    const children = unwrapBold(token.tokens);
-    return token.type === "strong"
-      ? children
-      : [{ ...token, tokens: children }];
-  });
+function unwrapBold(tokens: Token[]) {
+  return unwrap(tokens, ["strong"]);
 }
 
 function indent(text: string) {
@@ -189,14 +180,18 @@ function cleanUrl(href: string) {
 }
 
 // Slack can't parse a link nested in another one.
-function unwrapLinksAndImages(tokens: Token[]): Token[] {
+function unwrapLinksAndImages(tokens: Token[]) {
+  return unwrap(tokens, ["link", "image"]);
+}
+
+function unwrap(tokens: Token[], types: Token["type"][]): Token[] {
   return tokens.flatMap((token) => {
     if (!("tokens" in token) || !token.tokens) {
       return [token];
     }
 
-    const children = unwrapLinksAndImages(token.tokens);
-    return token.type === "link" || token.type === "image"
+    const children = unwrap(token.tokens, types);
+    return types.includes(token.type)
       ? children
       : [{ ...token, tokens: children }];
   });
