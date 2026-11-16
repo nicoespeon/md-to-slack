@@ -53,15 +53,16 @@ A few remarks though:
 - Headings (`#`, `##`, etc.) are not supported by mrkdwn, so they are stripped out
 - Same with images
 - GitHub Flavored Markdown checkboxes are converted into an equivalent emoji (☐ or ☒)
+- Tables are not supported by mrkdwn either, so they are rendered as aligned text in a code block
 
 ### 🔭 Next features
 
-1. Support Markdown extended syntax (e.g. tables)
+1. Support more of the Markdown extended syntax
 2. Generate Slack [Block Kit-compatible](https://api.slack.com/block-kit) objects, as an opt-in parameter
 
-We want to support the [extended syntax](https://www.markdownguide.org/extended-syntax/), in particular things like tables and GitHub Flavored Markdown niceties.
+We want to support the [extended syntax](https://www.markdownguide.org/extended-syntax/), in particular GitHub Flavored Markdown niceties.
 
-`mrkdwn` syntax has limited capabilities, so we intend to do a "best possble conversion" like we do for checkboxes.
+`mrkdwn` syntax has limited capabilities, so we intend to do a "best possble conversion" like we do for checkboxes and tables.
 
 But the real deal will be to add the option for generating a Slack Block Kit-compatible output to render rich elements, such as images, checkboxes, tables, and other HTML elements in Slack.
 

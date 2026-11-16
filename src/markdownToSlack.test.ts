@@ -225,6 +225,123 @@ Done.`);
     });
   });
 
+  describe("converts tables to code blocks", () => {
+    test("aligns columns on their longest cell", () => {
+      const result = markdownToSlack(`| Name | Age |
+|------|-----|
+| Alice | 30 |
+| Bob | 4 |`);
+      expect(result).toBe(`\`\`\`
+Name  | Age
+------|----
+Alice | 30
+Bob   | 4
+\`\`\``);
+    });
+
+    test("honors column alignment", () => {
+      const result = markdownToSlack(`| Left | Right | Center |
+|:-----|------:|:------:|
+| a | b | c |
+| aa | bb | ccc |`);
+      expect(result).toBe(`\`\`\`
+Left | Right | Center
+-----|-------|-------
+a    |     b |   c
+aa   |    bb |  ccc
+\`\`\``);
+    });
+
+    test("renders formatted cells as plain text", () => {
+      const result = markdownToSlack(`| Syntax | Value |
+|--------|-------|
+| Bold | **bold** |
+| Italic | _italic_ |
+| Strikethrough | ~~struck~~ |
+| Code | \`code\` |
+| Nested | **_both_** |
+| Link | [Example](https://example.com) |
+| Bare link | https://example.com |
+| Image | ![The alt text](https://example.com/image.png) |`);
+      expect(result).toBe(`\`\`\`
+Syntax        | Value
+--------------|------------------------------
+Bold          | bold
+Italic        | italic
+Strikethrough | struck
+Code          | code
+Nested        | both
+Link          | Example (https://example.com)
+Bare link     | https://example.com
+Image         | The alt text
+\`\`\``);
+    });
+
+    test("escapes characters without counting the escape in column widths", () => {
+      const result = markdownToSlack(`| Operator | Meaning |
+|----------|---------|
+| a && b | and |
+| a < b | less |
+| a > b | more |`);
+      expect(result).toBe(`\`\`\`
+Operator | Meaning
+---------|--------
+a &amp;&amp; b   | and
+a &lt; b    | less
+a &gt; b    | more
+\`\`\``);
+    });
+
+    test("keeps one blank line around a table between paragraphs", () => {
+      const result = markdownToSlack(`Before
+
+| A | B |
+|---|---|
+| 1 | 2 |
+
+After`);
+      expect(result).toBe(`Before
+
+\`\`\`
+A | B
+--|--
+1 | 2
+\`\`\`
+
+After`);
+    });
+
+    test("closes the code block before a heading that directly follows", () => {
+      const result = markdownToSlack(`| A | B |
+|---|---|
+| 1 | 2 |
+# After`);
+      expect(result).toBe(`\`\`\`
+A | B
+--|--
+1 | 2
+\`\`\`
+After`);
+    });
+
+    test("keeps columns aligned with empty cells and uneven rows", () => {
+      const result = markdownToSlack(`| One | Two | Three |
+|-----|-----|-------|
+| a | | c |
+| | b | |
+| short |
+| x | y | z | extra |`);
+      expect(result).toBe(`\`\`\`
+One   | Two | Three
+------|-----|------
+a     |     | c
+      | b   |
+short |     |
+x     | y   | z
+\`\`\``);
+    });
+  });
+
   describe("converts list to Slack syntax", () => {
     test("supports *", () => {
       const result = markdownToSlack(`* Hello world!
