@@ -133,7 +133,7 @@ const renderer = {
   },
 
   link(token) {
-    const text = this.parser.parseInline(token.tokens);
+    const text = this.parser.parseInline(unwrapLinksAndImages(token.tokens));
     const url = cleanUrl(token.href);
 
     return url === text || url === `mailto:${text}` || !text
@@ -141,9 +141,12 @@ const renderer = {
       : `<${url}|${text}>`;
   },
 
-  image() {
-    // Images are not supported by mrkdwn. Use Slack Block Kit for that.
-    return "";
+  image(token) {
+    // mrkdwn can't display images, so we link to them. Use Slack Block Kit to show them.
+    const url = cleanUrl(token.href);
+    const altText = this.parser.parseInline(unwrapLinksAndImages(token.tokens));
+
+    return altText ? `<${url}|${altText}>` : `<${url}>`;
   },
 
   text(token) {
@@ -160,17 +163,8 @@ const renderer = {
 } satisfies MarkedExtension["renderer"];
 
 // Slack doesn't render bold nested in bold.
-function unwrapBold(tokens: Token[]): Token[] {
-  return tokens.flatMap((token) => {
-    if (!("tokens" in token) || !token.tokens) {
-      return [token];
-    }
-
-    const children = unwrapBold(token.tokens);
-    return token.type === "strong"
-      ? children
-      : [{ ...token, tokens: children }];
-  });
+function unwrapBold(tokens: Token[]) {
+  return unwrap(tokens, ["strong"]);
 }
 
 function indent(text: string) {
@@ -183,6 +177,24 @@ function cleanUrl(href: string) {
   } catch {
     return href;
   }
+}
+
+// Slack can't parse a link nested in another one.
+function unwrapLinksAndImages(tokens: Token[]) {
+  return unwrap(tokens, ["link", "image"]);
+}
+
+function unwrap(tokens: Token[], types: Token["type"][]): Token[] {
+  return tokens.flatMap((token) => {
+    if (!("tokens" in token) || !token.tokens) {
+      return [token];
+    }
+
+    const children = unwrap(token.tokens, types);
+    return types.includes(token.type)
+      ? children
+      : [{ ...token, tokens: children }];
+  });
 }
 
 marked.use({ renderer });
