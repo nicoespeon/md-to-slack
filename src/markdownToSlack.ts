@@ -302,3 +302,11 @@ export function markdownToSlack(markdown: string): string {
     })
     .trimEnd();
 }
+
+export function lexMarkdown(markdown: string) {
+  return marked.lexer(markdown, { gfm: true });
+}
+
+export function renderMrkdwn(tokens: Token[]) {
+  return marked.parser(tokens);
+}

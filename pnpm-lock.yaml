@@ -15,6 +15,9 @@ importers:
       '@eslint/js':
         specifier: ^9.18.0
         version: 9.30.0
+      '@slack/types':
+        specifier: 3.3.0
+        version: 3.3.0
       '@types/node':
         specifier: ^25.3.3
         version: 25.5.0
@@ -711,6 +714,10 @@ packages:
     resolution: {integrity: sha512-/eMzhxPPUGd5vjHdaNtvxHbblmoe+DyvPnJkZ4uQrDlVq9PQSd8br4pWwamycwRcLoNEzXwFy2mzcGoZTYqU5A==}
     cpu: [x64]
     os: [win32]
+
+  '@slack/types@3.3.0':
+    resolution: {integrity: sha512-11r2kM9Zy/UlaV6OwPibZueVlyNJ5xtHEHK/iYDnPLyhQcxRtsifNAwNhJ1Lm0nszW4jrWCHThXCHCNJC/hvqg==}
+    engines: {node: '>= 20', npm: '>=9.6.4'}
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
@@ -2416,6 +2423,8 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.68.4':
     optional: true
+
+  '@slack/types@3.3.0': {}
 
   '@standard-schema/spec@1.1.0': {}
 
