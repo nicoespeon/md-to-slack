@@ -16,7 +16,43 @@ function toStandaloneBlock(
   token: Token,
   precedingBlocks: SlackBlock[],
 ): SlackBlock | undefined {
-  return isTable(token) ? toTableBlock(token, precedingBlocks) : undefined;
+  if (isHeading(token) && token.depth <= MAX_HEADER_DEPTH) {
+    return toHeader(token);
+  }
+
+  if (isTable(token)) {
+    return toTableBlock(token, precedingBlocks);
+  }
+
+  return token.type === "hr" ? { type: "divider" } : undefined;
+}
+
+function isHeading(token: Token): token is Tokens.Heading {
+  return token.type === "heading";
+}
+
+const MAX_HEADER_DEPTH = 2;
+const MAX_HEADER_TEXT_LENGTH = 150;
+
+function toHeader(heading: Tokens.Heading): HeaderBlock | undefined {
+  const text = toPlainText(heading.tokens);
+  return text.length >= 1 && text.length <= MAX_HEADER_TEXT_LENGTH
+    ? { type: "header", text: { type: "plain_text", text } }
+    : undefined;
+}
+
+function toPlainText(tokens: Token[]): string {
+  return tokens
+    .map((token) => {
+      if ("tokens" in token && token.tokens) {
+        return toPlainText(token.tokens);
+      }
+
+      return "text" in token && typeof token.text === "string"
+        ? token.text
+        : "";
+    })
+    .join("");
 }
 
 function isTable(token: Token): token is Tokens.Table {
@@ -171,11 +207,17 @@ function toSection(text: string): SectionBlock {
   return { type: "section", text: { type: "mrkdwn", text } };
 }
 
-export type SlackBlock = SectionBlock | TableBlock;
+export type SlackBlock = SectionBlock | HeaderBlock | DividerBlock | TableBlock;
 
 type SectionBlock = { type: "section"; text: MrkdwnText };
 
 type MrkdwnText = { type: "mrkdwn"; text: string };
+
+type HeaderBlock = { type: "header"; text: PlainText };
+
+type PlainText = { type: "plain_text"; text: string };
+
+type DividerBlock = { type: "divider" };
 
 type TableBlock = {
   type: "table";
