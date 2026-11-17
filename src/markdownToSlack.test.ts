@@ -180,6 +180,35 @@ Hello world!`);
       const result = markdownToSlack(`> Hello **world**!`);
       expect(result).toBe(`> Hello *world*!`);
     });
+
+    test.each([
+      {
+        block: "heading",
+        markdown: "> Hello world!\n# How are you?",
+        expected: "> Hello world!\n*How are you?*",
+      },
+      {
+        block: "code block",
+        markdown: "> Hello world!\n```\nHow are you?\n```",
+        expected: "> Hello world!\n```\nHow are you?\n```",
+      },
+      {
+        block: "horizontal rule",
+        markdown: "> Hello world!\n***",
+        expected: "> Hello world!\n***",
+      },
+      {
+        block: "list",
+        markdown: "> Hello world!\n- How are you?",
+        expected: "> Hello world!\n- How are you?",
+      },
+    ])(
+      "keeps a $block on its own line when it directly follows a blockquote",
+      ({ markdown, expected }) => {
+        const result = markdownToSlack(markdown);
+        expect(result).toBe(expected);
+      },
+    );
   });
 
   describe("converts code to Slack syntax", () => {
@@ -234,6 +263,54 @@ Done.`);
 const some = "code";
 \`\`\`
 
+Done.`);
+    });
+
+    test.each([
+      {
+        block: "heading",
+        markdown: "```\ncode\n```\n# Hello world!",
+        expected: "```\ncode\n```\n*Hello world!*",
+      },
+      {
+        block: "paragraph",
+        markdown: "```\ncode\n```\nHello world!",
+        expected: "```\ncode\n```\nHello world!",
+      },
+      {
+        block: "blockquote",
+        markdown: "```\ncode\n```\n> Hello world!",
+        expected: "```\ncode\n```\n> Hello world!",
+      },
+      {
+        block: "code block",
+        markdown: "```\ncode\n```\n```\nmore code\n```",
+        expected: "```\ncode\n```\n```\nmore code\n```",
+      },
+      {
+        block: "horizontal rule",
+        markdown: "```\ncode\n```\n***",
+        expected: "```\ncode\n```\n***",
+      },
+      {
+        block: "list",
+        markdown: "```\ncode\n```\n- Hello world!",
+        expected: "```\ncode\n```\n- Hello world!",
+      },
+    ])(
+      "keeps a $block on its own line when it directly follows a code block",
+      ({ markdown, expected }) => {
+        const result = markdownToSlack(markdown);
+        expect(result).toBe(expected);
+      },
+    );
+
+    test("keeps a paragraph on its own line when it directly follows indented code", () => {
+      const result = markdownToSlack(`    const some = "code";
+Done.`);
+      expect(result).toBe(`\`\`\`
+const some = "code";
+\`\`\`
 Done.`);
     });
   });
@@ -606,6 +683,63 @@ code
 - b`);
     });
 
+    test.each([
+      {
+        block: "nested list",
+        markdown: "- a\n  - nested\n  1. other\n- b",
+        expected: "- a\n  - nested\n  1. other\n- b",
+      },
+      {
+        block: "blockquote",
+        markdown: "- a\n  > quote\n  ***\n- b",
+        expected: "- a\n> quote\n***\n- b",
+      },
+      {
+        block: "code block",
+        markdown: "- a\n  ```\n  code\n  ```\n  paragraph\n- b",
+        expected: "- a\n```\ncode\n```\n  paragraph\n- b",
+      },
+      {
+        block: "table",
+        markdown: "- a\n  | x |\n  |---|\n  | 1 |\n  # Title\n- b",
+        expected: "- a\n```\nx\n-\n1\n```\n*Title*\n- b",
+      },
+      {
+        block: "horizontal rule",
+        markdown: "- a\n  ***\n  paragraph\n- b",
+        expected: "- a\n***\n  paragraph\n- b",
+      },
+    ])(
+      "doesn't add a blank line between a $block of an item and the block that directly follows",
+      ({ markdown, expected }) => {
+        const result = markdownToSlack(markdown);
+        expect(result).toBe(expected);
+      },
+    );
+
+    test("doesn't add a blank line after a nested list that ends a loose item", () => {
+      const result = markdownToSlack(`- a
+
+  - b
+
+- c`);
+      expect(result).toBe(`- a
+  - b
+- c`);
+    });
+
+    test("keeps a single blank line after a heading of an item", () => {
+      const result = markdownToSlack(`- a
+  # Title
+  paragraph
+- b`);
+      expect(result).toBe(`- a
+*Title*
+
+  paragraph
+- b`);
+    });
+
     test("puts a horizontal rule of an item on its own line", () => {
       const result = markdownToSlack(`- a
   ***
@@ -640,6 +774,40 @@ x | y
 
 - b`);
     });
+
+    test.each([
+      {
+        block: "heading",
+        markdown: "- a\n# Hello world!",
+        expected: "- a\n*Hello world!*",
+      },
+      {
+        block: "blockquote",
+        markdown: "- a\n> Hello world!",
+        expected: "- a\n> Hello world!",
+      },
+      {
+        block: "code block",
+        markdown: "- a\n```\ncode\n```",
+        expected: "- a\n```\ncode\n```",
+      },
+      {
+        block: "horizontal rule",
+        markdown: "- a\n***",
+        expected: "- a\n***",
+      },
+      {
+        block: "list of another kind",
+        markdown: "- a\n1. Hello world!",
+        expected: "- a\n1. Hello world!",
+      },
+    ])(
+      "keeps a $block on its own line when it directly follows a list",
+      ({ markdown, expected }) => {
+        const result = markdownToSlack(markdown);
+        expect(result).toBe(expected);
+      },
+    );
   });
 
   describe("preserves horizontal rules to Slack syntax", () => {

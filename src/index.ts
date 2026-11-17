@@ -20,13 +20,15 @@ const renderer = {
 
   code(token) {
     const text = token.text.replace(/\n$/, "");
-    return `\`\`\`${token.lang ?? ""}\n${text}\n\`\`\``;
+    const codeBlock = `\`\`\`${token.lang ?? ""}\n${text}\n\`\`\``;
+    return endLineIfDirectlyFollowed(token, codeBlock);
   },
 
   blockquote(token) {
-    return token.tokens
+    const quote = token.tokens
       .map((t) => ("> " + this.parser.parse([t])).trim())
       .join("\n");
+    return endLineIfDirectlyFollowed(token, quote);
   },
 
   html(token) {
@@ -50,6 +52,10 @@ const renderer = {
   },
 
   list(token) {
+    // The item separates its own blocks, so a block must not end its own line.
+    const parseBlock = (block: Token) =>
+      this.parser.parse([block]).replace(/\n$/, "");
+
     /**
      * Parse list item content, handling both inline formatting and nested blocks.
      * For text with inline formatting (bold, italic, links), we need parseInline.
@@ -65,7 +71,10 @@ const renderer = {
             const isBeforeNestedList = itemTokens[i + 1]?.type === "list";
             return isBeforeNestedList ? "" : t.raw;
           } else if (t.type === "list") {
-            return `\n${indent(this.parser.parse([t]))}`;
+            return `\n${indent(parseBlock(t))}`;
+          } else if (t.type === "html") {
+            // An HTML block renders its own line breaks.
+            return this.parser.parse([t]);
           }
 
           const isParagraph = t.type === "paragraph" || t.type === "text";
@@ -74,12 +83,11 @@ const renderer = {
           const block =
             isParagraph && "tokens" in t && t.tokens
               ? this.parser.parseInline(t.tokens)
-              : this.parser.parse([t]);
+              : parseBlock(t);
 
           const previous = itemTokens[i - 1];
           const continuesMarkerLine = !previous || previous.type === "checkbox";
-          // An HTML block renders its own line breaks.
-          if (continuesMarkerLine || t.type === "html") {
+          if (continuesMarkerLine) {
             return block;
           }
 
@@ -99,7 +107,7 @@ const renderer = {
           return `${marker} ${parseItemContent(item.tokens)}`;
         });
 
-    return items.join("\n");
+    return endLineIfDirectlyFollowed(token, items.join("\n"));
   },
 
   listitem() {
@@ -114,8 +122,7 @@ const renderer = {
     const text = this.parser.parseInline(token.tokens);
 
     // No blank line after the paragraph: keep the next block off its last line.
-    const isDirectlyFollowedByBlock = token.raw.endsWith("\n");
-    return isDirectlyFollowedByBlock ? `${text}\n` : text;
+    return endLineIfDirectlyFollowed(token, text);
   },
 
   table(token) {
@@ -145,8 +152,7 @@ const renderer = {
     const codeBlock = ["```", ...lines, "```"].join("\n");
 
     // No blank line after the table: keep the next block off the fence line.
-    const isDirectlyFollowedByBlock = token.raw.endsWith("\n");
-    return isDirectlyFollowedByBlock ? `${codeBlock}\n` : codeBlock;
+    return endLineIfDirectlyFollowed(token, codeBlock);
   },
 
   tablerow() {
@@ -213,6 +219,11 @@ const renderer = {
 
   // #endregion
 } satisfies MarkedExtension["renderer"];
+
+function endLineIfDirectlyFollowed(token: Token, block: string) {
+  const isDirectlyFollowedByBlock = token.raw.endsWith("\n");
+  return isDirectlyFollowedByBlock ? `${block}\n` : block;
+}
 
 // Slack doesn't render bold nested in bold.
 function unwrapBold(tokens: Token[]) {
