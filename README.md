@@ -17,6 +17,7 @@
 
 - 💫 Converts input into Slack-compatible [mrkdwn](https://api.slack.com/reference/surfaces/formatting) syntax
 - 🧱 Supports [Markdown](https://daringfireball.net/projects/markdown/) and [GitHub Flavored Markdown](https://github.github.com/gfm/) syntaxes
+- 🧩 Can generate [Block Kit](https://api.slack.com/block-kit) blocks instead, to render what mrkdwn can't: tables, images and headers
 
 ## ✨ Usage
 
@@ -55,16 +56,95 @@ A few remarks though:
 - GitHub Flavored Markdown checkboxes are converted into an equivalent emoji (☐ or ☒)
 - Tables are not supported by mrkdwn either, so they are rendered as aligned text in a code block
 
+### 🧩 Block Kit output
+
+mrkdwn can't render everything. When you need real tables, images and headers, use `markdownToSlackBlocks()` instead. It returns an array of [Block Kit](https://api.slack.com/block-kit) blocks:
+
+```js
+import { markdownToSlackBlocks } from "md-to-slack";
+
+const blocks = markdownToSlackBlocks(markdown);
+
+await client.chat.postMessage({ channel, blocks, text: "Weekly report" });
+```
+
+So text like:
+
+```md
+# Weekly report
+
+Sales are **up** this week.
+
+![Sales chart](https://example.com/chart.png)
+```
+
+Gets transformed into:
+
+```json
+[
+  {
+    "type": "header",
+    "text": { "type": "plain_text", "text": "Weekly report" }
+  },
+  {
+    "type": "section",
+    "text": { "type": "mrkdwn", "text": "Sales are *up* this week." }
+  },
+  {
+    "type": "image",
+    "image_url": "https://example.com/chart.png",
+    "alt_text": "Sales chart"
+  }
+]
+```
+
+Here is what becomes a block of its own:
+
+| Markdown                                                | Block     |
+| ------------------------------------------------------- | --------- |
+| `#` and `##` headings                                   | `header`  |
+| Horizontal rule                                         | `divider` |
+| Image alone in its paragraph, with an `http(s)` URL     | `image`   |
+| Table                                                   | `table`   |
+| Everything else (paragraphs, lists, quotes, code, etc.) | `section` |
+
+The rest is rendered as mrkdwn, exactly like `markdownToSlack()` does, and consecutive text is merged into a single `section`.
+
+A few remarks:
+
+- Only top-level elements become blocks. A table or an image nested in a list or a quote is rendered as mrkdwn.
+- `###` headings and deeper are rendered in bold, so your message keeps two levels of titles.
+- Table cells are plain text for now: formatting is dropped and links are written `text (url)`. See [#91](https://github.com/nicoespeon/md-to-slack/issues/91).
+- Slack only displays png, jpg and gif images, from a public URL.
+
+#### Slack limits
+
+Slack rejects blocks that are too big. `markdownToSlackBlocks()` handles these limits for you:
+
+- A `section` is limited to 3,000 characters. Longer text is split into several sections.
+- A `header` is limited to 150 characters. A longer heading is rendered in bold instead.
+- A `table` is limited to 100 rows and 20 columns, and all the tables of a message to 10,000 characters. A table that doesn't fit is rendered as aligned text in a code block instead.
+
+One limit is left to you: a message can't have more than 50 blocks. If your Markdown can get that long, split the returned array into several messages.
+
+#### TypeScript
+
+`md-to-slack` has no dependency on Slack packages, so you can't get a version mismatch with the SDK you use. Blocks are typed with our own `SlackBlock` type, which is checked against Slack's official types in CI. You can pass them as-is to [bolt](https://github.com/slackapi/bolt-js) or [@slack/web-api](https://www.npmjs.com/package/@slack/web-api).
+
+```ts
+import { markdownToSlackBlocks, type SlackBlock } from "md-to-slack";
+
+const blocks: SlackBlock[] = markdownToSlackBlocks(markdown);
+```
+
 ### 🔭 Next features
 
 1. Support more of the Markdown extended syntax
-2. Generate Slack [Block Kit-compatible](https://api.slack.com/block-kit) objects, as an opt-in parameter
+2. Render formatting and links in the cells of a `table` block ([#91](https://github.com/nicoespeon/md-to-slack/issues/91))
 
 We want to support the [extended syntax](https://www.markdownguide.org/extended-syntax/), in particular GitHub Flavored Markdown niceties.
 
 `mrkdwn` syntax has limited capabilities, so we intend to do a "best possible conversion" like we do for checkboxes and tables.
-
-But the real deal will be to add the option for generating a Slack Block Kit-compatible output to render rich elements, such as images, checkboxes, tables, and other HTML elements in Slack.
 
 ### 🦺 Security consideration
 
