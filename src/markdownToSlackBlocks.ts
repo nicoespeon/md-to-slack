@@ -1,5 +1,5 @@
-import { Token } from "marked";
-import { lexMarkdown, renderMrkdwn } from "./markdownToSlack.js";
+import { Parser, Token, Tokens } from "marked";
+import { cleanUrl, lexMarkdown, renderMrkdwn } from "./markdownToSlack.js";
 
 export function markdownToSlackBlocks(markdown: string): SlackBlock[] {
   return groupConsecutiveText(lexMarkdown(markdown)).flatMap((group) =>
@@ -8,8 +8,49 @@ export function markdownToSlackBlocks(markdown: string): SlackBlock[] {
 }
 
 // The one place that gives a top-level token its own block, out of the text.
-function toStandaloneBlock(_token: Token): SlackBlock | undefined {
-  return undefined;
+function toStandaloneBlock(token: Token): SlackBlock | undefined {
+  return toImageBlock(token);
+}
+
+function toImageBlock(token: Token): ImageBlock | undefined {
+  if (token.type !== "paragraph" || !("tokens" in token) || !token.tokens) {
+    return undefined;
+  }
+
+  const [image, ...otherTokens] = token.tokens.filter(
+    ({ raw }) => raw.trim() !== "",
+  );
+  if (!image || !isImage(image) || otherTokens.length > 0) {
+    return undefined;
+  }
+
+  // marked leaves the entities of a URL as written: fine in mrkdwn, not here.
+  const url = cleanUrl(image.href.replaceAll("&amp;", "&"));
+  const isAcceptedBySlack =
+    /^https?:\/\//i.test(url) && url.length <= MAX_IMAGE_URL_LENGTH;
+  if (!isAcceptedBySlack) {
+    return undefined;
+  }
+
+  const altText = toPlainText(image.tokens) || image.title || "Image";
+
+  return {
+    type: "image",
+    image_url: url,
+    alt_text: altText.slice(0, MAX_IMAGE_ALT_TEXT_LENGTH),
+  };
+}
+
+const MAX_IMAGE_URL_LENGTH = 3000;
+const MAX_IMAGE_ALT_TEXT_LENGTH = 2000;
+
+function isImage(token: Token): token is Tokens.Image {
+  return token.type === "image";
+}
+
+function toPlainText(inlineTokens: Token[]) {
+  const parser = new Parser();
+  return parser.parseInline(inlineTokens, parser.textRenderer);
 }
 
 function groupConsecutiveText(tokens: Token[]) {
@@ -115,8 +156,10 @@ function toSection(text: string): SectionBlock {
   return { type: "section", text: { type: "mrkdwn", text } };
 }
 
-export type SlackBlock = SectionBlock;
+export type SlackBlock = SectionBlock | ImageBlock;
 
 type SectionBlock = { type: "section"; text: MrkdwnText };
 
 type MrkdwnText = { type: "mrkdwn"; text: string };
+
+type ImageBlock = { type: "image"; image_url: string; alt_text: string };
