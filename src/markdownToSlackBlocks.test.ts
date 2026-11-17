@@ -22,7 +22,7 @@ describe("Markdown to Slack blocks", () => {
     ]);
   });
 
-  test("merges consecutive Markdown blocks into one section", () => {
+  test("merges consecutive text into one section, between the blocks that stand alone", () => {
     const markdown = [
       "# Title",
       "",
@@ -42,11 +42,15 @@ describe("Markdown to Slack blocks", () => {
       "---",
       "",
       "![alt](https://example.com/cat.png)",
+      "",
+      "| a | b |",
+      "| - | - |",
+      "| 1 | 2 |",
     ].join("\n");
 
     const result = markdownToSlackBlocks(markdown);
 
-    const mrkdwnBeforeRule = [
+    const text = [
       "A paragraph.",
       "",
       "- one",
@@ -60,12 +64,15 @@ describe("Markdown to Slack blocks", () => {
       "const b = 2;",
       "```",
     ].join("\n");
-    const mrkdwnAfterRule = ["<https://example.com/cat.png|alt>"].join("\n");
     expect(result).toEqual([
       header("Title"),
-      section(mrkdwnBeforeRule),
+      section(text),
       divider(),
-      section(mrkdwnAfterRule),
+      image("https://example.com/cat.png", "alt"),
+      table([
+        ["a", "b"],
+        ["1", "2"],
+      ]),
     ]);
   });
 
@@ -303,6 +310,121 @@ describe("Markdown to Slack blocks", () => {
     expect(result).toEqual([section("> *Title*\n>\n> ---")]);
   });
 
+  describe("image alone in a paragraph", () => {
+    test("renders an image block", () => {
+      const result = markdownToSlackBlocks(
+        "![A cat](https://example.com/cat.png)",
+      );
+
+      expect(result).toEqual([image("https://example.com/cat.png", "A cat")]);
+    });
+
+    test("uses the alt as plain text", () => {
+      const result = markdownToSlackBlocks(
+        "![A & **B** `c`](https://example.com/cat.png)",
+      );
+
+      expect(result).toEqual([image("https://example.com/cat.png", "A & B c")]);
+    });
+
+    test("falls back on the title when the alt is empty", () => {
+      const result = markdownToSlackBlocks(
+        '![](https://example.com/cat.png "A cat")',
+      );
+
+      expect(result).toEqual([image("https://example.com/cat.png", "A cat")]);
+    });
+
+    test("falls back on a default alt when it has no alt nor title", () => {
+      const result = markdownToSlackBlocks("![](https://example.com/cat.png)");
+
+      expect(result).toEqual([image("https://example.com/cat.png", "Image")]);
+    });
+
+    test("truncates an alt over 2,000 characters", () => {
+      const result = markdownToSlackBlocks(
+        `![${"a".repeat(2001)}](https://example.com/cat.png)`,
+      );
+
+      expect(result).toEqual([
+        image("https://example.com/cat.png", "a".repeat(2000)),
+      ]);
+    });
+
+    test("ignores the whitespace around the image", () => {
+      const result = markdownToSlackBlocks(
+        "  ![A cat](https://example.com/cat.png)  ",
+      );
+
+      expect(result).toEqual([image("https://example.com/cat.png", "A cat")]);
+    });
+
+    test("encodes the URL", () => {
+      const result = markdownToSlackBlocks(
+        "![A cat](<https://example.com/a cat.png>)",
+      );
+
+      expect(result).toEqual([
+        image("https://example.com/a%20cat.png", "A cat"),
+      ]);
+    });
+
+    test("decodes the ampersands of the URL", () => {
+      const result = markdownToSlackBlocks(
+        "![A cat](https://example.com/cat.png?w=1&amp;h=2)",
+      );
+
+      expect(result).toEqual([
+        image("https://example.com/cat.png?w=1&h=2", "A cat"),
+      ]);
+    });
+
+    test.each([
+      [
+        "with other content in its paragraph",
+        "![A cat](https://example.com/cat.png) meows",
+        "<https://example.com/cat.png|A cat> meows",
+      ],
+      [
+        "wrapped in a link",
+        "[![A cat](https://example.com/cat.png)](https://example.com)",
+        "<https://example.com|A cat>",
+      ],
+      [
+        "alone in a heading",
+        "### ![A cat](https://example.com/cat.png)",
+        "*<https://example.com/cat.png|A cat>*",
+      ],
+      ["whose URL is not http(s)", "![A cat](./cat.png)", "<./cat.png|A cat>"],
+    ])("keeps as a link an image %s", (_, markdown, mrkdwn) => {
+      const result = markdownToSlackBlocks(markdown);
+
+      expect(result).toEqual([section(mrkdwn)]);
+    });
+
+    test("keeps as text an image whose URL is over 3,000 characters", () => {
+      const url = `https://example.com/${"a".repeat(2981)}`;
+
+      const result = markdownToSlackBlocks(`![A cat](${url})`);
+
+      const link = `<${url}|A cat>`;
+      expect(result).toEqual([
+        section(link.slice(0, 3000)),
+        section(link.slice(3000)),
+      ]);
+    });
+
+    test("keeps as a link an image nested in another block", () => {
+      const result = markdownToSlackBlocks(
+        "- ![A cat](https://example.com/cat.png)",
+      );
+
+      expect(result).toEqual([
+        section("- <https://example.com/cat.png|A cat>"),
+      ]);
+    });
+  });
+
   describe("text over 3,000 characters", () => {
     test("splits between Markdown blocks", () => {
       const first = "a".repeat(2000);
@@ -485,6 +607,10 @@ function header(text: string) {
 
 function divider() {
   return { type: "divider" };
+}
+
+function image(image_url: string, alt_text: string) {
+  return { type: "image", image_url, alt_text };
 }
 
 function table(rows: string[][]) {
