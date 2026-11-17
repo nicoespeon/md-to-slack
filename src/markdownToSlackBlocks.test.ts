@@ -7,15 +7,19 @@ const _blocksAcceptedBySlack: KnownBlock[] = markdownToSlackBlocks("");
 
 describe("Markdown to Slack blocks", () => {
   test("renders a paragraph as a section", () => {
-    expect(markdownToSlackBlocks("Hello world!")).toEqual([
-      section("Hello world!"),
-    ]);
+    const result = markdownToSlackBlocks("Hello world!");
+
+    expect(result).toEqual([section("Hello world!")]);
   });
 
   test("renders inline formatting as mrkdwn", () => {
-    expect(
-      markdownToSlackBlocks("Hello **world**, see [docs](https://example.com)"),
-    ).toEqual([section("Hello *world*, see <https://example.com|docs>")]);
+    const result = markdownToSlackBlocks(
+      "Hello **world**, see [docs](https://example.com)",
+    );
+
+    expect(result).toEqual([
+      section("Hello *world*, see <https://example.com|docs>"),
+    ]);
   });
 
   test("merges consecutive Markdown blocks into one section", () => {
@@ -44,46 +48,47 @@ describe("Markdown to Slack blocks", () => {
       "| 1 | 2 |",
     ].join("\n");
 
-    expect(markdownToSlackBlocks(markdown)).toEqual([
-      section(
-        [
-          "*Title*",
-          "",
-          "A paragraph.",
-          "",
-          "- one",
-          "- two",
-          "",
-          "> quote",
-          "",
-          "```js",
-          "const a = 1;",
-          "",
-          "const b = 2;",
-          "```",
-          "",
-          "---",
-          "",
-          "<https://example.com/cat.png|alt>",
-          "",
-          "```",
-          "a | b",
-          "--|--",
-          "1 | 2",
-          "```",
-        ].join("\n"),
-      ),
-    ]);
+    const result = markdownToSlackBlocks(markdown);
+
+    const mrkdwn = [
+      "*Title*",
+      "",
+      "A paragraph.",
+      "",
+      "- one",
+      "- two",
+      "",
+      "> quote",
+      "",
+      "```js",
+      "const a = 1;",
+      "",
+      "const b = 2;",
+      "```",
+      "",
+      "---",
+      "",
+      "<https://example.com/cat.png|alt>",
+      "",
+      "```",
+      "a | b",
+      "--|--",
+      "1 | 2",
+      "```",
+    ].join("\n");
+    expect(result).toEqual([section(mrkdwn)]);
   });
 
   test("starts the section at the first line with content", () => {
-    expect(markdownToSlackBlocks("\n\n  \nHello world!\n\n")).toEqual([
-      section("Hello world!"),
-    ]);
+    const result = markdownToSlackBlocks("\n\n  \nHello world!\n\n");
+
+    expect(result).toEqual([section("Hello world!")]);
   });
 
   test.each(["", "  \n\n\t\n"])("returns no block for %j", (markdown) => {
-    expect(markdownToSlackBlocks(markdown)).toEqual([]);
+    const result = markdownToSlackBlocks(markdown);
+
+    expect(result).toEqual([]);
   });
 
   describe("text over 3,000 characters", () => {
@@ -91,10 +96,9 @@ describe("Markdown to Slack blocks", () => {
       const first = "a".repeat(2000);
       const second = "b".repeat(2000);
 
-      expect(markdownToSlackBlocks(`${first}\n\n${second}`)).toEqual([
-        section(first),
-        section(second),
-      ]);
+      const result = markdownToSlackBlocks(`${first}\n\n${second}`);
+
+      expect(result).toEqual([section(first), section(second)]);
     });
 
     test("packs as many whole blocks as fit in a section", () => {
@@ -102,9 +106,12 @@ describe("Markdown to Slack blocks", () => {
       const second = "b".repeat(1499);
       const third = "c".repeat(10);
 
-      expect(
-        markdownToSlackBlocks(`${first}\n\n${second}\n\n${third}`),
-      ).toEqual([section(`${first}\n\n${second}`), section(third)]);
+      const result = markdownToSlackBlocks(`${first}\n\n${second}\n\n${third}`);
+
+      expect(result).toEqual([
+        section(`${first}\n\n${second}`),
+        section(third),
+      ]);
     });
 
     test("doesn't split on a blank line inside a code block", () => {
@@ -113,10 +120,9 @@ describe("Markdown to Slack blocks", () => {
         "\n",
       );
 
-      expect(markdownToSlackBlocks(`${paragraph}\n\n${code}`)).toEqual([
-        section(paragraph),
-        section(code),
-      ]);
+      const result = markdownToSlackBlocks(`${paragraph}\n\n${code}`);
+
+      expect(result).toEqual([section(paragraph), section(code)]);
     });
 
     test("splits a block that is too long on its line breaks", () => {
@@ -124,9 +130,14 @@ describe("Markdown to Slack blocks", () => {
       const secondLine = "b".repeat(1400);
       const thirdLine = "c".repeat(1000);
 
-      expect(
-        markdownToSlackBlocks(`${firstLine}\n${secondLine}\n${thirdLine}`),
-      ).toEqual([section(`${firstLine}\n${secondLine}`), section(thirdLine)]);
+      const result = markdownToSlackBlocks(
+        `${firstLine}\n${secondLine}\n${thirdLine}`,
+      );
+
+      expect(result).toEqual([
+        section(`${firstLine}\n${secondLine}`),
+        section(thirdLine),
+      ]);
     });
 
     test("splits a code block that is too long into code blocks of the same language", () => {
@@ -136,16 +147,20 @@ describe("Markdown to Slack blocks", () => {
       const codeBlock = (...lines: string[]) =>
         ["```js", ...lines, "```"].join("\n");
 
-      expect(
-        markdownToSlackBlocks(codeBlock(firstLine, secondLine, thirdLine)),
-      ).toEqual([
+      const result = markdownToSlackBlocks(
+        codeBlock(firstLine, secondLine, thirdLine),
+      );
+
+      expect(result).toEqual([
         section(codeBlock(firstLine, secondLine)),
         section(codeBlock(thirdLine)),
       ]);
     });
 
     test("cuts a line that is too long", () => {
-      expect(markdownToSlackBlocks("a".repeat(7000))).toEqual([
+      const result = markdownToSlackBlocks("a".repeat(7000));
+
+      expect(result).toEqual([
         section("a".repeat(3000)),
         section("a".repeat(3000)),
         section("a".repeat(1000)),
@@ -155,7 +170,9 @@ describe("Markdown to Slack blocks", () => {
     test("cuts a line of code that is too long, leaving room for the fences", () => {
       const codeBlock = (code: string) => ["```", code, "```"].join("\n");
 
-      expect(markdownToSlackBlocks(codeBlock("a".repeat(6000)))).toEqual([
+      const result = markdownToSlackBlocks(codeBlock("a".repeat(6000)));
+
+      expect(result).toEqual([
         section(codeBlock("a".repeat(2992))),
         section(codeBlock("a".repeat(2992))),
         section(codeBlock("a".repeat(16))),
@@ -166,16 +183,15 @@ describe("Markdown to Slack blocks", () => {
       const firstRow = "a".repeat(1000);
       const secondRow = "b".repeat(1000);
       const thirdRow = "c".repeat(1000);
+      const table = ["h", "-", firstRow, secondRow, thirdRow]
+        .map((row) => `| ${row} |`)
+        .join("\n");
       const codeBlock = (...lines: string[]) =>
         ["```", ...lines, "```"].join("\n");
 
-      expect(
-        markdownToSlackBlocks(
-          ["h", "-", firstRow, secondRow, thirdRow]
-            .map((row) => `| ${row} |`)
-            .join("\n"),
-        ),
-      ).toEqual([
+      const result = markdownToSlackBlocks(table);
+
+      expect(result).toEqual([
         section(codeBlock("h", "-".repeat(1000), firstRow)),
         section(codeBlock(secondRow, thirdRow)),
       ]);
@@ -188,11 +204,11 @@ describe("Markdown to Slack blocks", () => {
       const codeBlock = (...lines: string[]) =>
         ["```", ...lines, "```"].join("\n");
 
-      expect(
-        markdownToSlackBlocks(
-          codeBlock(firstLine, "", secondLine, "", thirdLine),
-        ),
-      ).toEqual([
+      const result = markdownToSlackBlocks(
+        codeBlock(firstLine, "", secondLine, "", thirdLine),
+      );
+
+      expect(result).toEqual([
         section(codeBlock(firstLine, "", secondLine, "")),
         section(codeBlock(thirdLine)),
       ]);
@@ -202,19 +218,24 @@ describe("Markdown to Slack blocks", () => {
       const firstParagraph = `- ${"a".repeat(2000)}`;
       const secondParagraph = `  ${"b".repeat(2000)}`;
 
-      expect(
-        markdownToSlackBlocks(`${firstParagraph}\n\n${secondParagraph}`),
-      ).toEqual([section(firstParagraph), section(secondParagraph)]);
+      const result = markdownToSlackBlocks(
+        `${firstParagraph}\n\n${secondParagraph}`,
+      );
+
+      expect(result).toEqual([
+        section(firstParagraph),
+        section(secondParagraph),
+      ]);
     });
 
     test("resolves a link whose reference ends up in another section", () => {
       const paragraph = "a".repeat(2990);
 
-      expect(
-        markdownToSlackBlocks(
-          `See [docs][ref]\n\n${paragraph}\n\n[ref]: https://example.com`,
-        ),
-      ).toEqual([
+      const result = markdownToSlackBlocks(
+        `See [docs][ref]\n\n${paragraph}\n\n[ref]: https://example.com`,
+      );
+
+      expect(result).toEqual([
         section("See <https://example.com|docs>"),
         section(paragraph),
       ]);
@@ -229,9 +250,12 @@ describe("Markdown to Slack blocks", () => {
         "- one\n- two",
       ].join("\n\n");
 
-      expect(
-        markdownToSlackBlocks(markdown).map(({ text }) => text.text.length),
-      ).toEqual([7, 2401, 1200, 2010, 2010, 3000, 500, 11]);
+      const result = markdownToSlackBlocks(markdown);
+
+      const sectionLengths = result.map(({ text }) => text.text.length);
+      expect(sectionLengths).toEqual([
+        7, 2401, 1200, 2010, 2010, 3000, 500, 11,
+      ]);
     });
   });
 });
