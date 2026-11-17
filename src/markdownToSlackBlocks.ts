@@ -1,5 +1,9 @@
-import { Token } from "marked";
-import { lexMarkdown, renderMrkdwn } from "./markdownToSlack.js";
+import { Token, Tokens } from "marked";
+import {
+  lexMarkdown,
+  renderMrkdwn,
+  renderPlainText,
+} from "./markdownToSlack.js";
 
 export function markdownToSlackBlocks(markdown: string): SlackBlock[] {
   return groupConsecutiveText(lexMarkdown(markdown)).flatMap((group) =>
@@ -8,8 +12,49 @@ export function markdownToSlackBlocks(markdown: string): SlackBlock[] {
 }
 
 // The one place that gives a top-level token its own block, out of the text.
-function toStandaloneBlock(_token: Token): SlackBlock | undefined {
-  return undefined;
+function toStandaloneBlock(token: Token): SlackBlock | undefined {
+  return isTable(token) ? toTableBlock(token) : undefined;
+}
+
+function isTable(token: Token): token is Tokens.Table {
+  return token.type === "table";
+}
+
+const MAX_TABLE_ROWS = 100;
+const MAX_TABLE_COLUMNS = 20;
+const MAX_TABLE_TEXT_LENGTH = 10_000;
+
+function toTableBlock(token: Tokens.Table): TableBlock | undefined {
+  const rows = [token.header, ...token.rows].map((row) =>
+    row.map((cell) => toRawText(renderPlainText(cell.tokens))),
+  );
+  const textLength = rows
+    .flat()
+    .reduce((length, cell) => length + cell.text.length, 0);
+  const fitsInTable =
+    rows.length <= MAX_TABLE_ROWS &&
+    token.align.length <= MAX_TABLE_COLUMNS &&
+    textLength <= MAX_TABLE_TEXT_LENGTH;
+
+  if (!fitsInTable) {
+    return undefined;
+  }
+
+  const hasAlignedColumn = token.align.some((align) => align !== null);
+  return hasAlignedColumn
+    ? {
+        type: "table",
+        rows,
+        column_settings: token.align.map((align) => ({
+          align: align ?? "left",
+        })),
+      }
+    : { type: "table", rows };
+}
+
+function toRawText(text: string): RawText {
+  // Slack needs at least 1 character in a cell.
+  return { type: "raw_text", text: text || " " };
 }
 
 function groupConsecutiveText(tokens: Token[]) {
@@ -115,8 +160,18 @@ function toSection(text: string): SectionBlock {
   return { type: "section", text: { type: "mrkdwn", text } };
 }
 
-export type SlackBlock = SectionBlock;
+export type SlackBlock = SectionBlock | TableBlock;
 
 type SectionBlock = { type: "section"; text: MrkdwnText };
 
 type MrkdwnText = { type: "mrkdwn"; text: string };
+
+type TableBlock = {
+  type: "table";
+  rows: RawText[][];
+  column_settings?: ColumnSettings[];
+};
+
+type ColumnSettings = { align: "left" | "center" | "right" };
+
+type RawText = { type: "raw_text"; text: string };

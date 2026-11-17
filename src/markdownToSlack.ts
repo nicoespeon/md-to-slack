@@ -326,3 +326,7 @@ export function lexMarkdown(markdown: string) {
 export function renderMrkdwn(tokens: Token[]) {
   return marked.parser(tokens);
 }
+
+export function renderPlainText(inlineTokens: Token[]) {
+  return toPlainText(inlineTokens, new Parser());
+}
