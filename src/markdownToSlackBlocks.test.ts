@@ -191,6 +191,24 @@ describe("Markdown to Slack blocks", () => {
     ]);
   });
 
+  test("keeps a table in the text when the tables of the message would exceed 10,000 characters", () => {
+    const cell = "a".repeat(1000);
+    const rows = Array<string[]>(4).fill([cell]);
+    const markdown = Array<string>(3).fill(toMarkdownTable(rows)).join("\n\n");
+    const codeBlock = (...lines: string[]) =>
+      ["```", ...lines, "```"].join("\n");
+
+    const result = markdownToSlackBlocks(markdown);
+
+    expect(result).toEqual([
+      table(rows),
+      table(rows),
+      section(codeBlock(cell, "-".repeat(1000))),
+      section(codeBlock(cell, cell)),
+      section(codeBlock(cell)),
+    ]);
+  });
+
   test("cuts the text into a section before and after a table", () => {
     const markdown = [
       "Before",
@@ -418,4 +436,11 @@ function table(rows: string[][]) {
     type: "table",
     rows: rows.map((row) => row.map((text) => ({ type: "raw_text", text }))),
   };
+}
+
+function toMarkdownTable([header, ...body]: string[][]) {
+  const toLine = (cells: string[]) => `| ${cells.join(" | ")} |`;
+  const separator = header.map(() => "-");
+
+  return [header, separator, ...body].map(toLine).join("\n");
 }

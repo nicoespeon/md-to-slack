@@ -12,8 +12,11 @@ export function markdownToSlackBlocks(markdown: string): SlackBlock[] {
 }
 
 // The one place that gives a top-level token its own block, out of the text.
-function toStandaloneBlock(token: Token): SlackBlock | undefined {
-  return isTable(token) ? toTableBlock(token) : undefined;
+function toStandaloneBlock(
+  token: Token,
+  precedingBlocks: SlackBlock[],
+): SlackBlock | undefined {
+  return isTable(token) ? toTableBlock(token, precedingBlocks) : undefined;
 }
 
 function isTable(token: Token): token is Tokens.Table {
@@ -24,24 +27,15 @@ const MAX_TABLE_ROWS = 100;
 const MAX_TABLE_COLUMNS = 20;
 const MAX_TABLE_TEXT_LENGTH = 10_000;
 
-function toTableBlock(token: Tokens.Table): TableBlock | undefined {
+function toTableBlock(
+  token: Tokens.Table,
+  precedingBlocks: SlackBlock[],
+): TableBlock | undefined {
   const rows = [token.header, ...token.rows].map((row) =>
     row.map((cell) => toRawText(renderPlainText(cell.tokens))),
   );
-  const textLength = rows
-    .flat()
-    .reduce((length, cell) => length + cell.text.length, 0);
-  const fitsInTable =
-    rows.length <= MAX_TABLE_ROWS &&
-    token.align.length <= MAX_TABLE_COLUMNS &&
-    textLength <= MAX_TABLE_TEXT_LENGTH;
-
-  if (!fitsInTable) {
-    return undefined;
-  }
-
   const hasAlignedColumn = token.align.some((align) => align !== null);
-  return hasAlignedColumn
+  const table: TableBlock = hasAlignedColumn
     ? {
         type: "table",
         rows,
@@ -50,6 +44,20 @@ function toTableBlock(token: Tokens.Table): TableBlock | undefined {
         })),
       }
     : { type: "table", rows };
+
+  // Slack caps the text of all the tables of a message, not of each table.
+  const fitsInMessage =
+    rows.length <= MAX_TABLE_ROWS &&
+    token.align.length <= MAX_TABLE_COLUMNS &&
+    countTableText([...precedingBlocks, table]) <= MAX_TABLE_TEXT_LENGTH;
+
+  return fitsInMessage ? table : undefined;
+}
+
+function countTableText(blocks: SlackBlock[]) {
+  return blocks
+    .flatMap((block) => (block.type === "table" ? block.rows.flat() : []))
+    .reduce((length, cell) => length + cell.text.length, 0);
 }
 
 function toRawText(text: string): RawText {
@@ -59,7 +67,10 @@ function toRawText(text: string): RawText {
 
 function groupConsecutiveText(tokens: Token[]) {
   return tokens.reduce<TokenGroup[]>((groups, token) => {
-    const block = toStandaloneBlock(token);
+    const precedingBlocks = groups.flatMap((group) =>
+      group.kind === "standalone" ? [group.block] : [],
+    );
+    const block = toStandaloneBlock(token, precedingBlocks);
     if (block) {
       return [...groups, { kind: "standalone", block }];
     }
