@@ -22,7 +22,7 @@ describe("Markdown to Slack blocks", () => {
     ]);
   });
 
-  test("merges consecutive Markdown blocks into one section", () => {
+  test("merges consecutive text into one section, between the blocks that stand alone", () => {
     const markdown = [
       "# Title",
       "",
@@ -50,7 +50,7 @@ describe("Markdown to Slack blocks", () => {
 
     const result = markdownToSlackBlocks(markdown);
 
-    const mrkdwnBeforeRule = [
+    const text = [
       "A paragraph.",
       "",
       "- one",
@@ -64,15 +64,187 @@ describe("Markdown to Slack blocks", () => {
       "const b = 2;",
       "```",
     ].join("\n");
-    const mrkdwnAfterImage = ["```", "a | b", "--|--", "1 | 2", "```"].join(
-      "\n",
-    );
     expect(result).toEqual([
       header("Title"),
-      section(mrkdwnBeforeRule),
+      section(text),
       divider(),
       image("https://example.com/cat.png", "alt"),
-      section(mrkdwnAfterImage),
+      table([
+        ["a", "b"],
+        ["1", "2"],
+      ]),
+    ]);
+  });
+
+  test("renders a table as a table block, the header row first", () => {
+    const markdown = ["| a | b |", "| - | - |", "| 1 | 2 |", "| 3 | 4 |"].join(
+      "\n",
+    );
+
+    const result = markdownToSlackBlocks(markdown);
+
+    expect(result).toEqual([
+      table([
+        ["a", "b"],
+        ["1", "2"],
+        ["3", "4"],
+      ]),
+    ]);
+  });
+
+  test("renders the cells of a table as plain text", () => {
+    const markdown = [
+      "| **bold** _italic_ | A & B |",
+      "| - | - |",
+      "| `code` ~~gone~~ | [docs](https://example.com) |",
+    ].join("\n");
+
+    const result = markdownToSlackBlocks(markdown);
+
+    expect(result).toEqual([
+      table([
+        ["bold italic", "A & B"],
+        ["code gone", "docs (https://example.com)"],
+      ]),
+    ]);
+  });
+
+  test("aligns the columns of a table like the Markdown does", () => {
+    const markdown = [
+      "| a | b | c | d |",
+      "| - | :- | :-: | -: |",
+      "| 1 | 2 | 3 | 4 |",
+    ].join("\n");
+
+    const result = markdownToSlackBlocks(markdown);
+
+    expect(result).toEqual([
+      {
+        ...table([
+          ["a", "b", "c", "d"],
+          ["1", "2", "3", "4"],
+        ]),
+        column_settings: [
+          { align: "left" },
+          { align: "left" },
+          { align: "center" },
+          { align: "right" },
+        ],
+      },
+    ]);
+  });
+
+  test("renders an empty cell of a table as a space", () => {
+    const markdown = ["| a | |", "| - | - |", "| | 2 |"].join("\n");
+
+    const result = markdownToSlackBlocks(markdown);
+
+    expect(result).toEqual([
+      table([
+        ["a", " "],
+        [" ", "2"],
+      ]),
+    ]);
+  });
+
+  test("renders a table of 100 rows, 20 columns and 10,000 characters as a table block", () => {
+    const row = Array<string>(20).fill("abcde");
+    const rows = Array<string[]>(100).fill(row);
+    const [header, ...body] = rows.map((cells) => `| ${cells.join(" | ")} |`);
+    const separator = `|${" - |".repeat(20)}`;
+
+    const result = markdownToSlackBlocks(
+      [header, separator, ...body].join("\n"),
+    );
+
+    expect(result).toEqual([table(rows)]);
+  });
+
+  test("keeps a table over 100 rows in the text", () => {
+    const markdown = [
+      "| h |",
+      "| - |",
+      ...Array<string>(100).fill("| 1 |"),
+    ].join("\n");
+
+    const result = markdownToSlackBlocks(markdown);
+
+    expect(result).toEqual([
+      section(
+        ["```", "h", "-", ...Array<string>(100).fill("1"), "```"].join("\n"),
+      ),
+    ]);
+  });
+
+  test("keeps a table over 20 columns in the text", () => {
+    const markdown = [
+      `|${" h |".repeat(21)}`,
+      `|${" - |".repeat(21)}`,
+      `|${" 1 |".repeat(21)}`,
+    ].join("\n");
+
+    const result = markdownToSlackBlocks(markdown);
+
+    expect(result).toEqual([
+      section(
+        [
+          "```",
+          Array(21).fill("h").join(" | "),
+          Array(21).fill("-").join("-|-"),
+          Array(21).fill("1").join(" | "),
+          "```",
+        ].join("\n"),
+      ),
+    ]);
+  });
+
+  test("keeps a table in the text when the tables of the message would exceed 10,000 characters", () => {
+    const cell = "a".repeat(1000);
+    const rows = Array<string[]>(4).fill([cell]);
+    const markdown = Array<string>(3).fill(toMarkdownTable(rows)).join("\n\n");
+    const codeBlock = (...lines: string[]) =>
+      ["```", ...lines, "```"].join("\n");
+
+    const result = markdownToSlackBlocks(markdown);
+
+    expect(result).toEqual([
+      table(rows),
+      table(rows),
+      section(codeBlock(cell, "-".repeat(1000))),
+      section(codeBlock(cell, cell)),
+      section(codeBlock(cell)),
+    ]);
+  });
+
+  test("cuts the text into a section before and after a table", () => {
+    const markdown = [
+      "Before",
+      "",
+      "| a |",
+      "| - |",
+      "| 1 |",
+      "",
+      "After",
+      "",
+      "The end",
+    ].join("\n");
+
+    const result = markdownToSlackBlocks(markdown);
+
+    expect(result).toEqual([
+      section("Before"),
+      table([["a"], ["1"]]),
+      section("After\n\nThe end"),
+    ]);
+  });
+
+  test("keeps a table nested in a list in the text", () => {
+    const markdown = ["- item", "", "  | a |", "  | - |", "  | 1 |"].join("\n");
+
+    const result = markdownToSlackBlocks(markdown);
+
+    expect(result).toEqual([
+      section(["- item", "", "```", "a", "-", "1", "```"].join("\n")),
     ]);
   });
 
@@ -341,12 +513,11 @@ describe("Markdown to Slack blocks", () => {
       ]);
     });
 
-    test("splits a table that is too long into code blocks", () => {
-      const firstRow = "a".repeat(1000);
-      const secondRow = "b".repeat(1000);
-      const thirdRow = "c".repeat(1000);
-      const table = ["h", "-", firstRow, secondRow, thirdRow]
-        .map((row) => `| ${row} |`)
+    test("splits a table over 10,000 characters into code blocks", () => {
+      const header = "h".repeat(1001);
+      const row = "a".repeat(1000);
+      const table = [header, "-", ...Array<string>(9).fill(row)]
+        .map((line) => `| ${line} |`)
         .join("\n");
       const codeBlock = (...lines: string[]) =>
         ["```", ...lines, "```"].join("\n");
@@ -354,8 +525,12 @@ describe("Markdown to Slack blocks", () => {
       const result = markdownToSlackBlocks(table);
 
       expect(result).toEqual([
-        section(codeBlock("h", "-".repeat(1000), firstRow)),
-        section(codeBlock(secondRow, thirdRow)),
+        section(codeBlock(header, "-".repeat(1001))),
+        section(codeBlock(row, row)),
+        section(codeBlock(row, row)),
+        section(codeBlock(row, row)),
+        section(codeBlock(row, row)),
+        section(codeBlock(row)),
       ]);
     });
 
@@ -436,4 +611,18 @@ function divider() {
 
 function image(image_url: string, alt_text: string) {
   return { type: "image", image_url, alt_text };
+}
+
+function table(rows: string[][]) {
+  return {
+    type: "table",
+    rows: rows.map((row) => row.map((text) => ({ type: "raw_text", text }))),
+  };
+}
+
+function toMarkdownTable([header, ...body]: string[][]) {
+  const toLine = (cells: string[]) => `| ${cells.join(" | ")} |`;
+  const separator = header.map(() => "-");
+
+  return [header, separator, ...body].map(toLine).join("\n");
 }
