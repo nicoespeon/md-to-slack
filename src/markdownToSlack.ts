@@ -281,7 +281,7 @@ function toPlainText(tokens: Token[], parser: Parser) {
   return parser.parseInline(tokens, plainTextRenderer);
 }
 
-function cleanUrl(href: string) {
+export function cleanUrl(href: string) {
   try {
     return encodeURI(href).replace(/%25/g, "%");
   } catch {
