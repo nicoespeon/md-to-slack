@@ -50,9 +50,7 @@ describe("Markdown to Slack blocks", () => {
 
     const result = markdownToSlackBlocks(markdown);
 
-    const mrkdwn = [
-      "*Title*",
-      "",
+    const mrkdwnBeforeRule = [
       "A paragraph.",
       "",
       "- one",
@@ -65,9 +63,8 @@ describe("Markdown to Slack blocks", () => {
       "",
       "const b = 2;",
       "```",
-      "",
-      "---",
-      "",
+    ].join("\n");
+    const mrkdwnAfterRule = [
       "<https://example.com/cat.png|alt>",
       "",
       "```",
@@ -76,7 +73,12 @@ describe("Markdown to Slack blocks", () => {
       "1 | 2",
       "```",
     ].join("\n");
-    expect(result).toEqual([section(mrkdwn)]);
+    expect(result).toEqual([
+      header("Title"),
+      section(mrkdwnBeforeRule),
+      divider(),
+      section(mrkdwnAfterRule),
+    ]);
   });
 
   test("starts the section at the first line with content", () => {
@@ -89,6 +91,56 @@ describe("Markdown to Slack blocks", () => {
     const result = markdownToSlackBlocks(markdown);
 
     expect(result).toEqual([]);
+  });
+
+  test.each(["# Title", "## Title", "Title\n=====", "Title\n-----"])(
+    "renders the heading %j as a header",
+    (markdown) => {
+      const result = markdownToSlackBlocks(markdown);
+
+      expect(result).toEqual([header("Title")]);
+    },
+  );
+
+  test("renders the text of a header without formatting nor escaping", () => {
+    const result = markdownToSlackBlocks(
+      "# A & B: **bold _nested_**, `code` and [the *docs*](https://example.com)",
+    );
+
+    expect(result).toEqual([header("A & B: bold nested, code and the docs")]);
+  });
+
+  test("keeps a heading over 150 characters in the text", () => {
+    const longestHeader = "a".repeat(150);
+    const tooLong = "b".repeat(151);
+
+    const result = markdownToSlackBlocks(`# ${longestHeader}\n\n# ${tooLong}`);
+
+    expect(result).toEqual([header(longestHeader), section(`*${tooLong}*`)]);
+  });
+
+  test("returns no header for a heading without text", () => {
+    const result = markdownToSlackBlocks("#\n\nHello world!");
+
+    expect(result).toEqual([section("Hello world!")]);
+  });
+
+  test("keeps a heading under the second level in the text", () => {
+    const result = markdownToSlackBlocks("### Title");
+
+    expect(result).toEqual([section("*Title*")]);
+  });
+
+  test("renders a horizontal rule as a divider between the sections around it", () => {
+    const result = markdownToSlackBlocks("Above\n\n---\n\nBelow");
+
+    expect(result).toEqual([section("Above"), divider(), section("Below")]);
+  });
+
+  test("keeps a heading and a horizontal rule nested in a quote in the text", () => {
+    const result = markdownToSlackBlocks("> # Title\n>\n> ---");
+
+    expect(result).toEqual([section("> *Title*\n>\n> ---")]);
   });
 
   describe("text over 3,000 characters", () => {
@@ -252,14 +304,22 @@ describe("Markdown to Slack blocks", () => {
 
       const result = markdownToSlackBlocks(markdown);
 
-      const sectionLengths = result.map(({ text }) => text.text.length);
-      expect(sectionLengths).toEqual([
-        7, 2401, 1200, 2010, 2010, 3000, 500, 11,
-      ]);
+      const sectionLengths = result.flatMap((block) =>
+        block.type === "section" ? [block.text.text.length] : [],
+      );
+      expect(sectionLengths).toEqual([2401, 1200, 2010, 2010, 3000, 500, 11]);
     });
   });
 });
 
 function section(text: string) {
   return { type: "section", text: { type: "mrkdwn", text } };
+}
+
+function header(text: string) {
+  return { type: "header", text: { type: "plain_text", text } };
+}
+
+function divider() {
+  return { type: "divider" };
 }

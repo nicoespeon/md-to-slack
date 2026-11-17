@@ -1,4 +1,4 @@
-import { Token } from "marked";
+import { Token, Tokens } from "marked";
 import { lexMarkdown, renderMrkdwn } from "./markdownToSlack.js";
 
 export function markdownToSlackBlocks(markdown: string): SlackBlock[] {
@@ -8,8 +8,40 @@ export function markdownToSlackBlocks(markdown: string): SlackBlock[] {
 }
 
 // The one place that gives a top-level token its own block, out of the text.
-function toStandaloneBlock(_token: Token): SlackBlock | undefined {
-  return undefined;
+function toStandaloneBlock(token: Token): SlackBlock | undefined {
+  if (isHeading(token) && token.depth <= MAX_HEADER_DEPTH) {
+    return toHeader(token);
+  }
+
+  return token.type === "hr" ? { type: "divider" } : undefined;
+}
+
+function isHeading(token: Token): token is Tokens.Heading {
+  return token.type === "heading";
+}
+
+const MAX_HEADER_DEPTH = 2;
+const MAX_HEADER_TEXT_LENGTH = 150;
+
+function toHeader(heading: Tokens.Heading): HeaderBlock | undefined {
+  const text = toPlainText(heading.tokens);
+  return text.length >= 1 && text.length <= MAX_HEADER_TEXT_LENGTH
+    ? { type: "header", text: { type: "plain_text", text } }
+    : undefined;
+}
+
+function toPlainText(tokens: Token[]): string {
+  return tokens
+    .map((token) => {
+      if ("tokens" in token && token.tokens) {
+        return toPlainText(token.tokens);
+      }
+
+      return "text" in token && typeof token.text === "string"
+        ? token.text
+        : "";
+    })
+    .join("");
 }
 
 function groupConsecutiveText(tokens: Token[]) {
@@ -115,8 +147,14 @@ function toSection(text: string): SectionBlock {
   return { type: "section", text: { type: "mrkdwn", text } };
 }
 
-export type SlackBlock = SectionBlock;
+export type SlackBlock = SectionBlock | HeaderBlock | DividerBlock;
 
 type SectionBlock = { type: "section"; text: MrkdwnText };
 
 type MrkdwnText = { type: "mrkdwn"; text: string };
+
+type HeaderBlock = { type: "header"; text: PlainText };
+
+type PlainText = { type: "plain_text"; text: string };
+
+type DividerBlock = { type: "divider" };
