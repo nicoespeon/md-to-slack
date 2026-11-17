@@ -122,6 +122,19 @@ Hello world!`);
 `);
       expect(result).toBe(`Hello world!`);
     });
+
+    test.each([
+      { block: "blockquote", markdown: "Hello world!\n> How are you?" },
+      { block: "code block", markdown: "Hello world!\n```\nHow are you?\n```" },
+      { block: "horizontal rule", markdown: "Hello world!\n***" },
+      { block: "list", markdown: "Hello world!\n- How are you?" },
+    ])(
+      "keeps a $block on its own line when it directly follows a paragraph",
+      ({ markdown }) => {
+        const result = markdownToSlack(markdown);
+        expect(result).toBe(markdown);
+      },
+    );
   });
 
   describe("converts line-breaks to Slack syntax", () => {
@@ -580,6 +593,19 @@ code
 - b`);
     });
 
+    test("doesn't add a blank line between a paragraph of an item and the block that directly follows", () => {
+      const result = markdownToSlack(`- a
+
+  paragraph
+  - nested
+- b`);
+      expect(result).toBe(`- a
+
+  paragraph
+  - nested
+- b`);
+    });
+
     test("puts a horizontal rule of an item on its own line", () => {
       const result = markdownToSlack(`- a
   ***
@@ -759,6 +785,13 @@ How are you?`);
       expect(result).toBe(`*Hello world!*
 
 How are you?`);
+    });
+
+    test("keeps a heading on its own line when it directly follows a paragraph", () => {
+      const result = markdownToSlack(`How are you?
+# Hello world!`);
+      expect(result).toBe(`How are you?
+*Hello world!*`);
     });
 
     test("converts --- underline to bold", () => {

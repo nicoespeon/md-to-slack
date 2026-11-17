@@ -68,9 +68,11 @@ const renderer = {
             return `\n${indent(this.parser.parse([t]))}`;
           }
 
+          const isParagraph = t.type === "paragraph" || t.type === "text";
           // Text tokens may have inline children (bold, links, etc.)
+          // Paragraphs go inline too: the item separates its own blocks.
           const block =
-            t.type === "text" && "tokens" in t && t.tokens
+            isParagraph && "tokens" in t && t.tokens
               ? this.parser.parseInline(t.tokens)
               : this.parser.parse([t]);
 
@@ -81,7 +83,6 @@ const renderer = {
             return block;
           }
 
-          const isParagraph = t.type === "paragraph" || t.type === "text";
           const indented = isParagraph ? indent(block) : block;
           return previous.type === "space" ? indented : `\n${indented}`;
         })
@@ -110,7 +111,11 @@ const renderer = {
   },
 
   paragraph(token) {
-    return this.parser.parseInline(token.tokens);
+    const text = this.parser.parseInline(token.tokens);
+
+    // No blank line after the paragraph: keep the next block off its last line.
+    const isDirectlyFollowedByBlock = token.raw.endsWith("\n");
+    return isDirectlyFollowedByBlock ? `${text}\n` : text;
   },
 
   table(token) {
