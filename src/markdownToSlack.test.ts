@@ -180,6 +180,13 @@ Hello world!`);
       const result = markdownToSlack(`> Hello **world**!`);
       expect(result).toBe(`> Hello *world*!`);
     });
+
+    test("keeps a block on its own line when it directly follows a blockquote", () => {
+      const result = markdownToSlack(`> Hello world!
+# How are you?`);
+      expect(result).toBe(`> Hello world!
+*How are you?*`);
+    });
   });
 
   describe("converts code to Slack syntax", () => {
@@ -234,6 +241,17 @@ Done.`);
 const some = "code";
 \`\`\`
 
+Done.`);
+    });
+
+    test("keeps a block on its own line when it directly follows a code block", () => {
+      const result = markdownToSlack(`\`\`\`
+const some = "code";
+\`\`\`
+Done.`);
+      expect(result).toBe(`\`\`\`
+const some = "code";
+\`\`\`
 Done.`);
     });
   });
@@ -606,6 +624,37 @@ code
 - b`);
     });
 
+    test.each([
+      {
+        block: "nested list",
+        markdown: "- a\n  - nested\n  1. other\n- b",
+        expected: "- a\n  - nested\n  1. other\n- b",
+      },
+      {
+        block: "code block",
+        markdown: "- a\n  ```\n  code\n  ```\n  paragraph\n- b",
+        expected: "- a\n```\ncode\n```\n  paragraph\n- b",
+      },
+    ])(
+      "doesn't add a blank line between a $block of an item and the block that directly follows",
+      ({ markdown, expected }) => {
+        const result = markdownToSlack(markdown);
+        expect(result).toBe(expected);
+      },
+    );
+
+    test("keeps a single blank line after a heading of an item", () => {
+      const result = markdownToSlack(`- a
+  # Title
+  paragraph
+- b`);
+      expect(result).toBe(`- a
+*Title*
+
+  paragraph
+- b`);
+    });
+
     test("puts a horizontal rule of an item on its own line", () => {
       const result = markdownToSlack(`- a
   ***
@@ -639,6 +688,13 @@ x | y
       expect(result).toBe(`- a
 
 - b`);
+    });
+
+    test("keeps a block on its own line when it directly follows a list", () => {
+      const result = markdownToSlack(`- a
+# Hello world!`);
+      expect(result).toBe(`- a
+*Hello world!*`);
     });
   });
 
