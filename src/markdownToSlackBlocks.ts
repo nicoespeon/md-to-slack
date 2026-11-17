@@ -1,4 +1,4 @@
-import { Parser, Token, Tokens } from "marked";
+import { Token, Tokens } from "marked";
 import { cleanUrl, lexMarkdown, renderMrkdwn } from "./markdownToSlack.js";
 
 export function markdownToSlackBlocks(markdown: string): SlackBlock[] {
@@ -9,7 +9,11 @@ export function markdownToSlackBlocks(markdown: string): SlackBlock[] {
 
 // The one place that gives a top-level token its own block, out of the text.
 function toStandaloneBlock(token: Token): SlackBlock | undefined {
-  return toImageBlock(token);
+  if (isHeading(token) && token.depth <= MAX_HEADER_DEPTH) {
+    return toHeader(token);
+  }
+
+  return token.type === "hr" ? { type: "divider" } : toImageBlock(token);
 }
 
 function toImageBlock(token: Token): ImageBlock | undefined {
@@ -48,9 +52,32 @@ function isImage(token: Token): token is Tokens.Image {
   return token.type === "image";
 }
 
-function toPlainText(inlineTokens: Token[]) {
-  const parser = new Parser();
-  return parser.parseInline(inlineTokens, parser.textRenderer);
+function isHeading(token: Token): token is Tokens.Heading {
+  return token.type === "heading";
+}
+
+const MAX_HEADER_DEPTH = 2;
+const MAX_HEADER_TEXT_LENGTH = 150;
+
+function toHeader(heading: Tokens.Heading): HeaderBlock | undefined {
+  const text = toPlainText(heading.tokens);
+  return text.length >= 1 && text.length <= MAX_HEADER_TEXT_LENGTH
+    ? { type: "header", text: { type: "plain_text", text } }
+    : undefined;
+}
+
+function toPlainText(tokens: Token[]): string {
+  return tokens
+    .map((token) => {
+      if ("tokens" in token && token.tokens) {
+        return toPlainText(token.tokens);
+      }
+
+      return "text" in token && typeof token.text === "string"
+        ? token.text
+        : "";
+    })
+    .join("");
 }
 
 function groupConsecutiveText(tokens: Token[]) {
@@ -156,10 +183,16 @@ function toSection(text: string): SectionBlock {
   return { type: "section", text: { type: "mrkdwn", text } };
 }
 
-export type SlackBlock = SectionBlock | ImageBlock;
+export type SlackBlock = SectionBlock | HeaderBlock | DividerBlock | ImageBlock;
 
 type SectionBlock = { type: "section"; text: MrkdwnText };
 
 type MrkdwnText = { type: "mrkdwn"; text: string };
+
+type HeaderBlock = { type: "header"; text: PlainText };
+
+type PlainText = { type: "plain_text"; text: string };
+
+type DividerBlock = { type: "divider" };
 
 type ImageBlock = { type: "image"; image_url: string; alt_text: string };
