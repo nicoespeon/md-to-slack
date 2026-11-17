@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.3.0](https://github.com/nicoespeon/md-to-slack/compare/v1.2.0...v1.3.0) (2026-11-17)
+
+
+### Features
+
+* add markdownToSlackBlocks to convert Markdown into Block Kit sections ([#92](https://github.com/nicoespeon/md-to-slack/issues/92)) ([c4388cd](https://github.com/nicoespeon/md-to-slack/commit/c4388cdec91507adfd3860a1da0b22c0ceca1009))
+* render a standalone image as an image block ([#97](https://github.com/nicoespeon/md-to-slack/issues/97)) ([67c9e86](https://github.com/nicoespeon/md-to-slack/commit/67c9e86b75fd802da93dbe14d840f25a6b00e7a6))
+* render a table as a table block ([#98](https://github.com/nicoespeon/md-to-slack/issues/98)) ([9fcd28d](https://github.com/nicoespeon/md-to-slack/commit/9fcd28d51c496aeb3c4a853dc23e1c75a3d5a023))
+* render top-level headings and horizontal rules as header and divider blocks ([#96](https://github.com/nicoespeon/md-to-slack/issues/96)) ([3a2209d](https://github.com/nicoespeon/md-to-slack/commit/3a2209dfecabd06d2b6b73ea766251ac43b999a6))
+
+
+### Bug Fixes
+
+* keep a block on its own line when it directly follows a blockquote, a list or a code block ([#95](https://github.com/nicoespeon/md-to-slack/issues/95)) ([d99d50a](https://github.com/nicoespeon/md-to-slack/commit/d99d50a89bd1284f722f67ee041e0d2d0bb1f334))
+* keep a block on its own line when it directly follows a paragraph ([#93](https://github.com/nicoespeon/md-to-slack/issues/93)) ([4e026c4](https://github.com/nicoespeon/md-to-slack/commit/4e026c4077cf0402f4b4eec702e4c8951d45904c))
+
 ## [1.2.0](https://github.com/nicoespeon/md-to-slack/compare/v1.1.8...v1.2.0) (2026-11-16)
 
 
